@@ -2,8 +2,6 @@ package qupath.ext.training.ui;
 
 import javafx.scene.layout.Pane;
 
-import java.util.List;
-
 public interface Question {
     /**
      * Check if the current answer is right or wrong. This could be combined with getExplanation in some sort of Answer class.
