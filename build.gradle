@@ -1,8 +1,6 @@
 plugins {
     // Main gradle plugin for building a Java library
     id 'java-library'
-    // Support writing the extension in Groovy (remove this if you don't want to)
-    id 'groovy'
     // To create a shadow/fat jar that bundle up all dependencies
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     // Include this plugin to avoid downloading JavaCPP dependencies for all platforms
@@ -10,23 +8,17 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.1.0'
 }
 
-// TODO: Change the module name
-ext.moduleName = 'io.github.qupath.extension.template'
+ext.moduleName = 'io.github.qupath.extension.training'
 
-// TODO: Define the extension name & version, and provide a short description
 base {
     archivesName = rootProject.name
     version = '0.0.1-SNAPSHOT'
-    description = 'A simple QuPath extension template'
+    description = 'A QuPath extension to help learn how to use the software'
 }
 
-// TODO: Specify the QuPath version, compatible with the extension.
 // The default 'gradle.ext.qupathVersion' reads this from settings.gradle.
 ext.qupathVersion = gradle.ext.qupathVersion
-
-// TODO: Specify the Java version compatible with the extension
-// Should be Java 17 for QuPath v0.5.0
-ext.qupathJavaVersion = 17
+ext.qupathJavaVersion = libs.versions.jdk.get()
 
 /**
  * Define dependencies.
