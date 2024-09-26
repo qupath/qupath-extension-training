@@ -1,5 +1,9 @@
 package qupath.ext.training.ui;
 
+import ij.gui.GUI;
+import javafx.scene.Scene;
+import javafx.scene.control.MenuItem;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +11,8 @@ import qupath.lib.common.Version;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.extensions.GitHubProject;
 import qupath.lib.gui.extensions.QuPathExtension;
+import qupath.lib.gui.scripting.QPEx;
+import qupath.lib.objects.PathObject;
 
 import java.util.ResourceBundle;
 
@@ -59,6 +65,60 @@ public class TrainingExtension implements QuPathExtension, GitHubProject {
 			return;
 		}
 		isInstalled = true;
+		addMenuItem(qupath);
+	}
+	private void addMenuItem(QuPathGUI qupath) {
+		var menu = qupath.getMenu("Extensions>" + EXTENSION_NAME, true);
+		MenuItem menuItem = new MenuItem("My menu item");
+		menuItem.setOnAction(e -> createMCQ());
+		menu.getItems().add(menuItem);
+	}
+
+	private void createMCQ() {
+		var mcq = new MultipleChoiceQuestion(
+				"If you guess on this question, what is the probability you will get it right?",
+				"",
+				new MultipleChoiceQuestion.MCQOption("25%", "There is no correct answer!"),
+				new MultipleChoiceQuestion.MCQOption("50%", "There is no correct answer!"),
+				new MultipleChoiceQuestion.MCQOption("0%", "There is no correct answer!"),
+				new MultipleChoiceQuestion.MCQOption("25%", "There is no correct answer!"));
+		Stage s = new Stage();
+		GridPane gp = new GridPane();
+		gp.addRow(0, mcq.getPane());
+		var gq = new GUIQuestion("Select all annotations", () -> {
+			var selected = QPEx.getSelectedObjects();
+			if (selected == null) {
+				return "No objects selected!";
+			}
+			if (!selected.stream().allMatch(PathObject::isAnnotation)) {
+				return "Some non-annotation objects selected.";
+			}
+			if (selected.containsAll(QPEx.getAnnotationObjects())) {
+				return "";
+			}
+			return "Not all annotations are selected";
+		});
+		gp.addRow(1, gq.getPane());
+
+		var sq = new ScriptQuestion("Select all detections", () -> {
+			var selected = QPEx.getSelectedObjects();
+			if (selected == null) {
+				return "No objects selected!";
+			}
+			if (!selected.stream().allMatch(PathObject::isDetection)) {
+				return "Some non-detection objects selected.";
+			}
+			if (selected.containsAll(QPEx.getDetectionObjects())) {
+				return "";
+			}
+			return "Not all detections are selected";
+		});
+		gp.addRow(2, sq.getPane());
+
+		Scene ss = new Scene(gp);
+
+		s.setScene(ss);
+		s.show();
 	}
 
 	@Override
