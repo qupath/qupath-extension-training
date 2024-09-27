@@ -1,14 +1,12 @@
-package qupath.ext.training.ui;
+package qupath.ext.training.ui.quiz;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 
 import java.util.List;
@@ -46,15 +44,15 @@ public class Quiz {
         pane.setBottom(ap);
     }
 
-    Quiz(String title, Question... questions) {
+    public Quiz(String title, Question... questions) {
         this(title, List.of(questions));
     }
 
-    Pane getPane() {
+    public Pane getPane() {
         return this.pane;
     }
 
-    String getTitle() {
+    public String getTitle() {
         return this.title;
     }
 }

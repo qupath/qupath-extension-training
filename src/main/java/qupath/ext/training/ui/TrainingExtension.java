@@ -1,12 +1,14 @@
 package qupath.ext.training.ui;
 
-import ij.gui.GUI;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
-import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import qupath.ext.training.ui.quiz.GUIQuestion;
+import qupath.ext.training.ui.quiz.MultipleChoiceQuestion;
+import qupath.ext.training.ui.quiz.Quiz;
+import qupath.ext.training.ui.quiz.ScriptQuestion;
 import qupath.lib.common.Version;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.extensions.GitHubProject;

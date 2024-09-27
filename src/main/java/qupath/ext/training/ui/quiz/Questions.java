@@ -1,4 +1,4 @@
-package qupath.ext.training.ui;
+package qupath.ext.training.ui.quiz;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
