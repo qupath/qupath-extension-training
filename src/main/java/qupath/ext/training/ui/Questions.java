@@ -11,7 +11,7 @@ import java.util.ResourceBundle;
 public class Questions {
     private static final ResourceBundle resources = ResourceBundle.getBundle("qupath.ext.training.ui.strings");
 
-    static void showPopover(Question question, Button button) {
+    static void checkCurrentSolution(Question question, Button button) {
         PopOver po = new PopOver();
         var vb = new VBox();
         boolean isCorrect = question.isCurrentAnswerRight();

@@ -3,7 +3,6 @@ package qupath.ext.training.ui;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -30,7 +29,7 @@ public class GUIQuestion implements Question {
         pane.getChildren().add(new Label(question));
         pane.getChildren().add(new Separator());
         var acceptBtn = new Button(resources.getString("quiz.question.accept"));
-        acceptBtn.setOnAction(e -> Questions.showPopover(this, acceptBtn));
+        acceptBtn.setOnAction(e -> Questions.checkCurrentSolution(this, acceptBtn));
         pane.getChildren().add(acceptBtn);
     }
 
@@ -39,7 +38,7 @@ public class GUIQuestion implements Question {
         try {
             return explanationGetter.call().isEmpty();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return false;
         }
     }
 
@@ -48,7 +47,7 @@ public class GUIQuestion implements Question {
         try {
             return explanationGetter.call();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return String.format(resources.getString("quiz.question.error"), e.getMessage());
         }
     }
 

@@ -56,7 +56,7 @@ public class MultipleChoiceQuestion extends VBox implements Question {
 
     @FXML
     void showPopover() {
-        Questions.showPopover(this, acceptBtn);
+        Questions.checkCurrentSolution(this, acceptBtn);
     }
 
     public record MCQOption(String text, String explanation) {

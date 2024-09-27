@@ -3,23 +3,17 @@ package qupath.ext.training.ui;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import org.controlsfx.control.PopOver;
-import qupath.lib.gui.scripting.DefaultScriptEditor;
 import qupath.lib.gui.scripting.QPEx;
 import qupath.lib.gui.scripting.languages.ScriptLanguageProvider;
 import qupath.lib.scripting.ScriptParameters;
 import qupath.lib.scripting.languages.ExecutableLanguage;
-import qupath.lib.scripting.languages.ScriptLanguage;
 
-import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.util.Collections;
 import java.util.ResourceBundle;
@@ -46,7 +40,7 @@ public class ScriptQuestion implements Question {
         pane.getChildren().add(tfScript);
         pane.getChildren().add(new Separator());
         var acceptBtn = new Button(resources.getString("quiz.question.accept"));
-        acceptBtn.setOnAction(e -> Questions.showPopover(this, acceptBtn));
+        acceptBtn.setOnAction(e -> Questions.checkCurrentSolution(this, acceptBtn));
         pane.getChildren().add(acceptBtn);
     }
 
@@ -66,7 +60,7 @@ public class ScriptQuestion implements Question {
         try {
             return explanationGetter.call().isBlank();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return false;
         }
     }
 
@@ -75,7 +69,7 @@ public class ScriptQuestion implements Question {
         try {
             return explanationGetter.call();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return String.format(resources.getString("quiz.question.error"), e.getMessage());
         }
     }
 
