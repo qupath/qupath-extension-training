@@ -1,10 +1,16 @@
 package qupath.ext.training.ui;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import org.controlsfx.control.PopOver;
 import qupath.lib.gui.scripting.DefaultScriptEditor;
 import qupath.lib.gui.scripting.QPEx;
@@ -16,29 +22,32 @@ import qupath.lib.scripting.languages.ScriptLanguage;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.util.Collections;
+import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
 
 public class ScriptQuestion implements Question {
-    private final BorderPane pane;
+    private final VBox pane;
     private final Callable<String> explanationGetter;
     private final TextField tfScript;
+    private static final ResourceBundle resources = ResourceBundle.getBundle("qupath.ext.training.ui.strings");
+    private final BooleanProperty hasBeenSolved = new SimpleBooleanProperty(false);
 
     ScriptQuestion(String question, Callable<String> explanationGetter) {
         this.explanationGetter = explanationGetter;
-        pane = new BorderPane();
+        pane = new VBox();
+        pane.setPadding(new Insets(5));
+        // pane.setAlignment(Pos.CENTER_LEFT);
+        pane.setSpacing(10);
 
-        Pane questionPane = new Pane(new Label(question));
-        pane.setTop(questionPane);
+        pane.getChildren().add(new Label(question));
+        pane.getChildren().add(new Separator());
+        // todo: block the GUI somehow? otherwise people can point and click their way to the answer
         tfScript = new TextField();
-        pane.setCenter(tfScript);
-        var acceptBtn = new Button("Accept");
-        acceptBtn.setOnAction(e -> {
-            PopOver po = new PopOver();
-            po.setContentNode(new Label(isCurrentAnswerRight() ? "Right!" : "Wrong." + "\n" + getExplanation()));
-            po.show(acceptBtn);
-        });
-        pane.setBottom(acceptBtn);
-
+        pane.getChildren().add(tfScript);
+        pane.getChildren().add(new Separator());
+        var acceptBtn = new Button(resources.getString("quiz.question.accept"));
+        acceptBtn.setOnAction(e -> Questions.showPopover(this, acceptBtn));
+        pane.getChildren().add(acceptBtn);
     }
 
     @Override
@@ -73,5 +82,10 @@ public class ScriptQuestion implements Question {
     @Override
     public Pane getPane() {
         return pane;
+    }
+
+    @Override
+    public BooleanProperty hasBeenSolved() {
+        return this.hasBeenSolved;
     }
 }

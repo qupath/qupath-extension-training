@@ -1,5 +1,6 @@
 package qupath.ext.training.ui;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.scene.layout.Pane;
 
 public interface Question {
@@ -20,4 +21,10 @@ public interface Question {
      * @return Some sort of pane.
      */
     Pane getPane();
+
+    /**
+     * Records whether the user has come up with an answer
+     * @return true if the user has gotten it right yet
+     */
+    BooleanProperty hasBeenSolved();
 }

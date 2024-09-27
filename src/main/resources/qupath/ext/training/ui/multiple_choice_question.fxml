@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<fx:root xmlns="http://javafx.com/javafx"
+         xmlns:fx="http://javafx.com/fxml" type="VBox">
+        <HBox>
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+            <Label fx:id="questionText"/>
+        </HBox>
+        <Separator/>
+        <VBox fx:id="optionsBox">
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+        </VBox>
+        <Separator/>
+        <HBox>
+            <Button fx:id="acceptBtn" text="%quiz.question.accept" onAction="#showPopover">
+                <tooltip>
+                    <Tooltip text="%quiz.question.accept-tooltip"/>
+                </tooltip>
+            </Button>
+            <padding>
+                <Insets topRightBottomLeft="5"/>
+            </padding>
+        </HBox>
+</fx:root>

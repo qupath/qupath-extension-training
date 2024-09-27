@@ -1,73 +1,94 @@
 package qupath.ext.training.ui;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
-import org.controlsfx.control.PopOver;
+import javafx.scene.layout.VBox;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+import java.util.ResourceBundle;
 
-public class MultipleChoiceQuestion implements Question {
-    private final BorderPane pane;
+public class MultipleChoiceQuestion extends VBox implements Question {
     private final String correctAnswer;
-    private final List<RadioButton> buttons;
     private final List<MCQOption> options;
+    private static final MCQOption NO_ANSWER_SELECTED = new MCQOption("No answer selected", "No answer selected");
+    private static final ResourceBundle resources = ResourceBundle.getBundle("qupath.ext.training.ui.strings");
 
-    MultipleChoiceQuestion(String question, String correctAnswer, MCQOption... options) {
-        this.correctAnswer = correctAnswer;
-        this.options = List.of(options);
-        pane = new BorderPane();
+    @FXML
+    private Button acceptBtn;
+    @FXML
+    private Label questionText;
+    @FXML
+    private VBox optionsBox;
 
-        Pane questionPane = new Pane(new Label(question));
-        pane.setTop(questionPane);
-        GridPane answerPane = new GridPane();
-        var tg = new ToggleGroup();
-        buttons = new ArrayList<>();
-        for (int i = 0; i < options.length; i++) {
-            var rb = new RadioButton(options[i].text);
-            rb.setToggleGroup(tg);
-            buttons.add(rb);
-            answerPane.addRow(i, rb);
-        }
-        pane.setCenter(answerPane);
-        var acceptBtn = new Button("Accept");
-        acceptBtn.setOnAction(e -> {
-            PopOver po = new PopOver();
-            po.setContentNode(new Label(isCurrentAnswerRight() ? "Right!" : "Wrong." + "\n" + getExplanation()));
-            po.show(acceptBtn);
-        });
-        pane.setBottom(acceptBtn);
+    private final BooleanProperty hasBeenSolved = new SimpleBooleanProperty(false);
+
+    public static MultipleChoiceQuestion createMCQ(String question, String correctAnswer, MCQOption... options) throws IOException {
+        return new MultipleChoiceQuestion(question, correctAnswer, options);
     }
 
-    record MCQOption(String text, String explanation) {
+    private MultipleChoiceQuestion(String question, String correctAnswer, MCQOption... options) throws IOException {
+        this.correctAnswer = correctAnswer;
+        this.options = List.of(options);
+
+        var url = MultipleChoiceQuestion.class.getResource("multiple_choice_question.fxml");
+        FXMLLoader loader = new FXMLLoader(url, resources);
+        loader.setRoot(this);
+        loader.setController(this);
+        loader.load();
+
+        questionText.setText(question);
+        var tg = new ToggleGroup();
+        for (MCQOption option : options) {
+            var rb = new RadioButton(option.text);
+            rb.setToggleGroup(tg);
+            optionsBox.getChildren().add(rb);
+        }
+    }
+
+    @FXML
+    void showPopover() {
+        Questions.showPopover(this, acceptBtn);
+    }
+
+    public record MCQOption(String text, String explanation) {
     }
 
     @Override
     public Pane getPane() {
-        return pane;
+        return this;
     }
 
     @Override
+    public BooleanProperty hasBeenSolved() {
+        return this.hasBeenSolved;
+    }
+
+
+    @Override
     public boolean isCurrentAnswerRight() {
-        return correctAnswer.equals(getCurrentAnswer().text);
+        return getCurrentAnswer().orElse(NO_ANSWER_SELECTED).text.equals(correctAnswer);
     }
 
     @Override
     public String getExplanation() {
-        return getCurrentAnswer().explanation;
+        return getCurrentAnswer().orElse(NO_ANSWER_SELECTED).explanation;
     }
 
-    private MCQOption getCurrentAnswer() {
-        for (int i = 0; i < buttons.size(); i++) {
-            if (buttons.get(i).isSelected()) {
-                return options.get(i);
+    private Optional<MCQOption> getCurrentAnswer() {
+        for (int i = 0; i < optionsBox.getChildren().size(); i++) {
+            if (optionsBox.getChildren().get(i) instanceof RadioButton radioButtonbtn && radioButtonbtn.isSelected()) {
+                return Optional.of(options.get(i));
             }
         }
-        return null;
+        return Optional.empty();
     }
 }

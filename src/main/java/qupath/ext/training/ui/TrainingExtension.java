@@ -14,11 +14,12 @@ import qupath.lib.gui.extensions.QuPathExtension;
 import qupath.lib.gui.scripting.QPEx;
 import qupath.lib.objects.PathObject;
 
+import java.io.IOException;
 import java.util.ResourceBundle;
 
 
 public class TrainingExtension implements QuPathExtension, GitHubProject {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(TrainingExtension.class);
 
 	private static final ResourceBundle resources = ResourceBundle.getBundle("qupath.ext.training.ui.strings");
@@ -70,21 +71,25 @@ public class TrainingExtension implements QuPathExtension, GitHubProject {
 	private void addMenuItem(QuPathGUI qupath) {
 		var menu = qupath.getMenu("Extensions>" + EXTENSION_NAME, true);
 		MenuItem menuItem = new MenuItem("My menu item");
-		menuItem.setOnAction(e -> createMCQ());
+		menuItem.setOnAction(e -> {
+			try {
+				createMCQ();
+			} catch (IOException ex) {
+				throw new RuntimeException(ex);
+			}
+		});
 		menu.getItems().add(menuItem);
 	}
 
-	private void createMCQ() {
-		var mcq = new MultipleChoiceQuestion(
-				"If you guess on this question, what is the probability you will get it right?",
+	private void createMCQ() throws IOException {
+		var mcq = MultipleChoiceQuestion.createMCQ(
+				"If you randomly choose an answer to this question, what is the probability you will get it right?",
 				"",
-				new MultipleChoiceQuestion.MCQOption("25%", "There is no correct answer!"),
-				new MultipleChoiceQuestion.MCQOption("50%", "There is no correct answer!"),
-				new MultipleChoiceQuestion.MCQOption("0%", "There is no correct answer!"),
-				new MultipleChoiceQuestion.MCQOption("25%", "There is no correct answer!"));
+				new MultipleChoiceQuestion.MCQOption("25%", "This should be correct...\nbut there are two 25% options, which would make the chance 50%."),
+				new MultipleChoiceQuestion.MCQOption("50%", "Since there are two 25% options, this could be right...\nbut then if this is right there's only a 25% chance."),
+				new MultipleChoiceQuestion.MCQOption("0%", "This should be right since the other options are wrong...\nbut then if this is right, then the chance is non-zero."),
+				new MultipleChoiceQuestion.MCQOption("25%", "Same as the first option!"));
 		Stage s = new Stage();
-		GridPane gp = new GridPane();
-		gp.addRow(0, mcq.getPane());
 		var gq = new GUIQuestion("Select all annotations", () -> {
 			var selected = QPEx.getSelectedObjects();
 			if (selected == null) {
@@ -98,7 +103,6 @@ public class TrainingExtension implements QuPathExtension, GitHubProject {
 			}
 			return "Not all annotations are selected";
 		});
-		gp.addRow(1, gq.getPane());
 
 		var sq = new ScriptQuestion("Select all detections", () -> {
 			var selected = QPEx.getSelectedObjects();
@@ -113,10 +117,9 @@ public class TrainingExtension implements QuPathExtension, GitHubProject {
 			}
 			return "Not all detections are selected";
 		});
-		gp.addRow(2, sq.getPane());
-
-		Scene ss = new Scene(gp);
-
+		var quiz = new Quiz("A mock quiz", mcq, gq, sq);
+		Scene ss = new Scene(quiz.getPane());
+		s.setTitle(quiz.getTitle());
 		s.setScene(ss);
 		s.show();
 	}
@@ -130,7 +133,7 @@ public class TrainingExtension implements QuPathExtension, GitHubProject {
 	public String getDescription() {
 		return EXTENSION_DESCRIPTION;
 	}
-	
+
 	@Override
 	public Version getQuPathVersion() {
 		return EXTENSION_QUPATH_VERSION;
