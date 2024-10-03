@@ -1,8 +1,10 @@
 package qupath.ext.training.ui;
 
+import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import qupath.ext.training.ui.tour.GuiTour;
 import qupath.lib.common.Version;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.extensions.GitHubProject;
@@ -59,6 +61,11 @@ public class TrainingExtension implements QuPathExtension, GitHubProject {
 			return;
 		}
 		isInstalled = true;
+
+		var tour = new GuiTour(qupath);
+		var item = new MenuItem("Tour");
+		item.setOnAction(e -> tour.run());
+		qupath.getMenu("Extensions>Training", true).getItems().add(item);
 	}
 
 	@Override
