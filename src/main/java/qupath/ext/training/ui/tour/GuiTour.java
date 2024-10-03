@@ -49,36 +49,50 @@ public class GuiTour implements Runnable {
     private static ObservableList<TourItem> createInstructions(QuPathGUI qupath) {
         return FXCollections.observableArrayList(
                 createInstruction(
-                        "Analysis pane",
-                        "This is the main tab pane on the left, where you can access different tools and data.\n\n" +
-                                "We should probably rename this...",
+                        "Tour of QuPath's user interface",
+                        "Click through each page for a quick introduction to the main parts of QuPath's user interface.",
+                        qupath.getStage().getScene().getRoot()
+                ),
+                createInstruction(
+                        "Tab pane",
+                        "This is the main tab pane on the left.\n\n" +
+                        "Here you can select images in a project, view metadata for each image, " +
+                                "see a list of annotations, and create a 'Workflow' from commands you have run.\n\n" +
+                                "> This used to be called the 'Analysis Pane', but was renamed because " +
+                                "it isn't really all about analysis...",
                         qupath.getAnalysisTabPane()
                 ),
                 createInstruction(
                         "Viewer",
                         "The main viewer for displaying images - and objects created for images.\n\n" +
                                 "Right-click on this to access a context menu with additional options - which includes " +
-                                "creating a grid of viewers to display several images at the same time.",
+                                "creating a grid of viewers to display several images at the same time.\n\n" +
+                                "> **Tip:** Drag & drop project folders, images or scripts onto the viewer to open them quickly - " +
+                                "there's no need to use the _File_ menu to open most things in QuPath.",
                         qupath.getViewer().getView() // Consider what to do if the user already has multiple viewers
                 ),
                 createInstruction(
                         "Toolbar",
                         "This is the main toolbar, where you can access many of the most commonly used actions.\n\n" +
-                                "Click on the buttons to perform actions, or right-click to access additional options.",
+                                "Click on the buttons to perform actions, or right-click to access additional options.\n\n" +
+                                "> **Tip:** Hover the cursor over a button for an explanation of what it does, " +
+                                "and also to see any shortcut key associated with the button.",
                         qupath.getToolBar()
                 ),
                 createToolbarInstruction(
-                        "Toggle 'Analysis pane'",
+                        "Toggle 'Tab pane'",
                         "Show or hide the main tab pane on the left.",
                         qupath.getCommonActions().SHOW_ANALYSIS_PANE),
                 createToolbarInstruction(
                         "Move tool",
-                        "Activate this, then click and drag in the viewer to pan around the image or to move objects.",
+                        "Activate this, then click and drag in the viewer to pan around the image or to move objects.\n\n" +
+                                "You should have the 'Move tool' active most of the time when using QuPath, " +
+                                "to avoid accidentally drawing things.",
                         qupath.getToolManager().getToolAction(PathTools.MOVE)),
                 createToolbarInstruction(
                         "Drawing tools",
                         "Active one of these and then click in the viewer to draw new annotations on an image.\n\n" +
-                                "(As long as 'Selection mode' isn't enabled - see the next instruction!)",
+                                "_(As long as 'Selection mode' isn't enabled - see the next instruction!)_",
                         qupath.getToolManager().getToolAction(PathTools.RECTANGLE),
                         qupath.getToolManager().getToolAction(
                                 qupath.getToolManager().getTools()
@@ -90,7 +104,9 @@ public class GuiTour implements Runnable {
                         "Selection mode",
                         "Toggle 'Selection mode'.\n\n" +
                                 "This switches the behavior of the drawing tools, so that they " +
-                                "select objects rather than draw new ones.",
+                                "select objects instead of drawing new ones.\n\n" +
+                                "> **Tip:** By default, selected objects are shown in _yellow_. " +
+                                "You can change this behavior in the 'Preferences...'",
                         qupath.getToolManager().getSelectionModeAction()),
                 createToolbarInstruction(
                         "Brightness/Contrast dialog",
@@ -134,8 +150,8 @@ public class GuiTour implements Runnable {
 
     private Node createPage(int pageIndex) {
         var item = items.get(pageIndex);
-        var page = item.createPage();
-        page.setOnKeyReleased(this::handlePageKeyReleased);
+        var page = TourUtils.createPage(item);
+//        page.setOnKeyReleased(this::handlePageKeyReleased);
         var nodesToHighlight = item.getNodes();
         if (!nodesToHighlight.isEmpty()) {
             Platform.runLater(() -> {

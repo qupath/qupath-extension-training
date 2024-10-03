@@ -1,23 +1,20 @@
 package qupath.ext.training.ui.tour;
 
-import javafx.application.Platform;
-import javafx.geometry.BoundingBox;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.Window;
-import qupath.fx.utils.FXUtils;
+import javafx.scene.transform.Scale;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
+import qupath.lib.gui.tools.WebViews;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 
@@ -33,31 +30,34 @@ public class TourItem {
         this.nodes = List.copyOf(nodes);
     }
 
-    @Override
-    public String toString() {
+    /**
+     * Get the title to display.
+     * @return
+     */
+    String getTitle() {
+        return title;
+    }
+
+    /**
+     * Get the main text to display.
+     * This is typically markdown.
+     * @return
+     */
+    String getText() {
         return text;
     }
 
+    /**
+     * Get an unmodifiable list of nodes to display.
+     * @return
+     */
     List<Node> getNodes() {
         return nodes;
     }
 
-    Node createPage() {
-        var ta = new TextArea();
-        ta.setWrapText(true);
-        ta.setText(text);
-        ta.setEditable(false);
-        ta.setPrefWidth(250);
-        var pane = new BorderPane(ta);
-        if (title != null) {
-            var label = new Label(title);
-            label.setStyle("-fx-font-weight: bold; -fx-font-size: 1.2em;");
-            label.setMaxWidth(Double.MAX_VALUE);
-            label.setAlignment(Pos.CENTER);
-            label.setPadding(new Insets(5.0));
-            pane.setTop(label);
-        }
-        return pane;
+    @Override
+    public String toString() {
+        return text;
     }
 
 }
