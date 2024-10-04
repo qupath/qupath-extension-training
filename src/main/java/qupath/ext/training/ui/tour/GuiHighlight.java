@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -50,11 +51,12 @@ class GuiHighlight {
         var pane = new BorderPane(rect);
         pane.getStyleClass().setAll("tour-highlight-pane");
 
-        // Setting transparent because I'd like (I think) clicks to still pass through whatever is highlighted.
+        // TODO: Consider Setting transparent because I'd like (I think) clicks to still pass through whatever is highlighted.
         // I can only confirm this doesn't work on macOS though... possibly because of
         // https://bugs.openjdk.org/browse/JDK-8088104
-        rect.setMouseTransparent(true);
-        pane.setMouseTransparent(true);
+//        rect.setMouseTransparent(true);
+//        pane.setMouseTransparent(true);
+        rect.setOnMouseClicked(this::handleMouseClick);
 
         var scene = new Scene(pane, Color.TRANSPARENT);
 
@@ -66,6 +68,11 @@ class GuiHighlight {
 
         this.rectangle = rect;
         this.stage = stage;
+    }
+
+    private void handleMouseClick(MouseEvent event) {
+        if (stage != null)
+            stage.hide();
     }
 
     /**
@@ -122,6 +129,12 @@ class GuiHighlight {
         // (We assume that, if we have multiple nodes, all are in the same tab)
         var firstNode = nodes.getFirst();
         tryToEnsureVisible(firstNode);
+
+        // This can occur whenever we're part of a toolbar overflow
+        if (!firstNode.isVisible() || !firstNode.getParent().isVisible()) {
+            hide();
+            return;
+        }
 
         var bounds = TourUtils.computeBoundsForAll(nodes);
 

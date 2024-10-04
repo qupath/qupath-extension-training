@@ -207,15 +207,16 @@ public class GuiTour implements Runnable {
 
     private Node createPage(int pageIndex) {
         var item = items.get(pageIndex);
-        var page = TourUtils.createPage(item);
-//        page.setOnKeyReleased(this::handlePageKeyReleased);
+        // It's important to highlight first, otherwise nodes might not
+        // be visible, and dynamic screenshots don't work
         var nodesToHighlight = item.getNodes();
         if (!nodesToHighlight.isEmpty()) {
+            highlightNodes(nodesToHighlight);
             Platform.runLater(() -> {
-                highlightNodes(nodesToHighlight);
                 stage.requestFocus();
             });
         }
+        var page = TourUtils.createPage(item);
         return page;
     }
 

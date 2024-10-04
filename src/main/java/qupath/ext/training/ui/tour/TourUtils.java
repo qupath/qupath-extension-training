@@ -1,5 +1,6 @@
 package qupath.ext.training.ui.tour;
 
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
@@ -37,9 +38,11 @@ public class TourUtils {
      * @return
      */
     static Node createPage(TourItem item) {
-        var html = createHtml(item);
         var webview = WebViews.create(true);
-        webview.getEngine().loadContent(html);
+        Platform.runLater(() -> {
+            var html = createHtml(item);
+            webview.getEngine().loadContent(html);
+        });
         return webview;
     }
 
@@ -83,7 +86,7 @@ public class TourUtils {
         if (text != null)
             sb.append(text).append("\n");
 
-        Image img = createScaledSnapshot(nodes, 2.0);
+        Image img = createScaledSnapshot(nodes);
         if (img != null) {
             var imgTag = createEmbeddedImage(img);
             if (imgTag != null) {
@@ -127,12 +130,12 @@ public class TourUtils {
         return null;
     }
 
-    private static Image createScaledSnapshot(List<? extends Node> nodes, double scale) {
+    private static Image createScaledSnapshot(List<? extends Node> nodes) {
         if (nodes.isEmpty())
             return null;
         var firstNode = nodes.getFirst();
         if (nodes.size() == 1) {
-            return createScaledSnapshot(firstNode, scale);
+            return createScaledSnapshot(firstNode);
         }
         var window = FXUtils.getWindow(firstNode);
         if (window != null) {
@@ -141,12 +144,15 @@ public class TourUtils {
             var bounds = TourUtils.computeBoundsForAll(nodes);
             var root = window.getScene().getRoot();
             bounds = root.screenToLocal(bounds);
+            double scale = computeScaleFromBounds(bounds);
+
             bounds = new BoundingBox(
                     bounds.getMinX()*scale,
                     bounds.getMinY()*scale,
                     bounds.getWidth()*scale,
                     bounds.getHeight()*scale
             );
+
 
             double pad = 2;
             params.setViewport(
@@ -162,11 +168,27 @@ public class TourUtils {
         }
     }
 
-    private static Image createScaledSnapshot(Node node, double scale) {
+    private static Image createScaledSnapshot(Node node) {
+        double scale = computeScaleFromBounds(node.getLayoutBounds());
         var params = new SnapshotParameters();
         params.setFill(Color.TRANSPARENT);
         params.setTransform(new Scale(scale, scale));
         return node.snapshot(params, null);
+    }
+
+    /**
+     * Compute scale from a bounds object; this is used to have smaller items
+     * (e.g. buttons) at a higher resolution.
+     * @param bounds
+     * @return
+     */
+    private static double computeScaleFromBounds(Bounds bounds) {
+        if (bounds == null)
+            return 1.0;
+        double minDim = Math.min(bounds.getWidth(), bounds.getHeight());
+        if (minDim < 128)
+            return 2.0;
+        return 1.0;
     }
 
     private static String base64Encode(Image img) throws IOException {
