@@ -6,7 +6,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.Pagination;
+import javafx.scene.control.Slider;
+import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -45,7 +48,7 @@ public class GuiTour implements Runnable {
     }
 
 
-    private static ObservableList<TourItem> createInstructions(QuPathGUI qupath) {
+    private ObservableList<TourItem> createInstructions(QuPathGUI qupath) {
         return FXCollections.observableArrayList(
                 createInstruction(
                         "intro",
@@ -78,6 +81,11 @@ public class GuiTour implements Runnable {
                                         .filter(t -> t.getName().equals("Wand"))
                                         .findFirst()
                                         .orElse(PathTools.BRUSH))),
+
+                createToolbarInstruction(
+                        "toolbar.points",
+                        qupath.getToolManager().getToolAction(PathTools.POINTS)
+                ),
                 createToolbarInstruction(
                         "toolbar.selection-mode",
                         qupath.getToolManager().getSelectionModeAction()),
@@ -102,12 +110,92 @@ public class GuiTour implements Runnable {
                         "toolbar.fill-annotations",
                         qupath.getOverlayActions().FILL_ANNOTATIONS),
                 createToolbarInstruction(
+                        "toolbar.show-names",
+                        qupath.getOverlayActions().SHOW_NAMES),
+                createToolbarInstruction(
+                        "toolbar.show-tma",
+                        qupath.getOverlayActions().SHOW_TMA_GRID),
+                createToolbarInstruction(
                         "toolbar.show-detections",
                         qupath.getOverlayActions().SHOW_DETECTIONS),
                 createToolbarInstruction(
+                        "toolbar.fill-detections",
+                        qupath.getOverlayActions().FILL_DETECTIONS),
+
+                createToolbarInstruction(
+                        "toolbar.show-connections",
+                        qupath.getOverlayActions().SHOW_CONNECTIONS),
+
+                createToolbarInstruction(
+                        "toolbar.show-classification",
+                        qupath.getOverlayActions().SHOW_PIXEL_CLASSIFICATION),
+
+                // TODO: Access opacity slider in a more robust way
+                createInstruction(
+                        "toolbar.opacity-slider",
+                        qupath.getToolBar().getItems().stream()
+                                .filter(n -> n instanceof Slider)
+                                .findFirst()
+                                .orElse(null)),
+
+                // TODO: Access measurement menu in a more robust way
+                createInstruction(
+                        "toolbar.measurement-tables",
+                        qupath.getToolBar().getItems().stream()
+                                .filter(n -> n instanceof MenuButton)
+                                .findFirst()
+                                .orElse(null)),
+
+                createToolbarInstruction(
+                        "toolbar.script-editor",
+                        qupath.getAutomateActions().SCRIPT_EDITOR),
+
+                createToolbarInstruction(
                         "toolbar.show-overview",
-                        qupath.getViewerActions().SHOW_OVERVIEW)
-        );
+                        qupath.getViewerActions().SHOW_OVERVIEW),
+
+                createToolbarInstruction(
+                        "toolbar.show-location",
+                        qupath.getViewerActions().SHOW_LOCATION),
+
+                createToolbarInstruction(
+                        "toolbar.scalebar",
+                        qupath.getViewerActions().SHOW_SCALEBAR
+                ),
+
+                createToolbarInstruction(
+                        "toolbar.prefs",
+                        qupath.getCommonActions().PREFERENCES
+                ),
+                createToolbarInstruction(
+                        "toolbar.log",
+                        qupath.getCommonActions().SHOW_LOG
+                ),
+                createToolbarInstruction(
+                        "toolbar.help",
+                        qupath.getCommonActions().HELP_VIEWER
+                ),
+                createTabPaneInstruction(
+                        "tab-pane.project",
+                        "Project"
+                ),
+                createTabPaneInstruction(
+                        "tab-pane.image",
+                        "Image"
+                ),
+                createTabPaneInstruction(
+                        "tab-pane.annotations",
+                        "Annotations"
+                ),
+                createTabPaneInstruction(
+                        "tab-pane.hierarchy",
+                        "Hierarchy"
+                ),
+                createTabPaneInstruction(
+                        "tab-pane.workflow",
+                        "Workflow"
+                )
+                );
     }
 
     private Pagination createPagination() {
@@ -183,10 +271,20 @@ public class GuiTour implements Runnable {
      * @param actions the actions to highlight; we'll look for these in the toolbar
      * @return
      */
-    static TourItem createToolbarInstruction(String key, Action... actions) {
-        var items = QuPathGUI.getInstance().getToolBar().getItems()
+    TourItem createToolbarInstruction(String key, Action... actions) {
+        var items = qupath.getToolBar().getItems()
                 .stream()
                 .filter(node -> containsActionProperty(node, actions))
+                .toList();
+        return new TourItem(key, items, null);
+    }
+
+    TourItem createTabPaneInstruction(String key, String tabName) {
+        var items = qupath.getAnalysisTabPane()
+                .getTabs()
+                .stream()
+                .filter(tab -> tabName.equals(tab.getText()))
+                .map(Tab::getContent)
                 .toList();
         return new TourItem(key, items, null);
     }

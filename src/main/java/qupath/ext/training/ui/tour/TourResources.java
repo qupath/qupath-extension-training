@@ -1,6 +1,8 @@
 package qupath.ext.training.ui.tour;
 
+import java.util.Comparator;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 class TourResources {
 
@@ -44,7 +46,23 @@ class TourResources {
      */
     public static String getText(String key) {
         var textKey = getTextKey(key);
-        return resources.containsKey(textKey) ? resources.getString(textKey) : null;
+        return resources.keySet()
+                .stream()
+                .filter(k -> k.startsWith(textKey))
+                .sorted(Comparator.comparingInt(String::length))
+                .map(TourResources::getUpdatedString)
+                .collect(Collectors.joining("\n\n"));
+    }
+
+    private static String getUpdatedString(String key) {
+        var s = getString(key);
+        if (key.contains(".text.tip"))
+            return "> **Tip:** " + s.replaceAll("\n", "\n> ");
+        if (key.contains(".text.info"))
+            return "> **Info:** " + s.replaceAll("\n", "\n> ");
+        if (key.contains(".text.caution"))
+            return "> **Caution:** " + s.replaceAll("\n", "\n> ");
+        return s;
     }
 
 }
