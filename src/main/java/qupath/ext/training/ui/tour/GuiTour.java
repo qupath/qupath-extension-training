@@ -44,7 +44,8 @@ public class GuiTour implements Runnable {
         return FXCollections.observableArrayList(
                 createInstruction(
                         "Tour of QuPath's user interface",
-                        "Click through each page for a quick introduction to the main parts of QuPath's user interface.",
+                        "Click through each page for a quick introduction to the main parts of QuPath's user interface.\n\n" +
+                                "> **Tip:** You can also use the left and right arrow keys.",
                         qupath.getStage().getScene().getRoot()
                 ),
                 createInstruction(
@@ -52,8 +53,8 @@ public class GuiTour implements Runnable {
                         "This is the main tab pane on the left.\n\n" +
                         "Here you can select images in a project, view metadata for each image, " +
                                 "see a list of annotations, and create a 'Workflow' from commands you have run.\n\n" +
-                                "> This used to be called the 'Analysis Pane', but was renamed because " +
-                                "it isn't really all about analysis...",
+                                "> **Info:** This used to be called the 'Analysis Pane'.\n" +
+                                "It  was renamed because it isn't really dedicated to analysis...",
                         qupath.getAnalysisTabPane()
                 ),
                 createInstruction(
@@ -86,7 +87,7 @@ public class GuiTour implements Runnable {
                 createToolbarInstruction(
                         "Drawing tools",
                         "Active one of these and then click in the viewer to draw new annotations on an image.\n\n" +
-                                "_(As long as 'Selection mode' isn't enabled - see the next instruction!)_",
+                                "> **Caution:** _As long as 'Selection mode' isn't enabled - see the next instruction!_",
                         qupath.getToolManager().getToolAction(PathTools.RECTANGLE),
                         qupath.getToolManager().getToolAction(
                                 qupath.getToolManager().getTools()
@@ -237,12 +238,11 @@ public class GuiTour implements Runnable {
     }
 
 
-
     /**
-     * Highlight a node to help the user find it.
+     * Highlight one or more nodes to help the user find it.
      * @param nodes
      */
-    void highlightNodes(List<? extends Node> nodes) {
+    private void highlightNodes(List<? extends Node> nodes) {
         if (!Platform.isFxApplicationThread()) {
             Platform.runLater(() -> highlightNodes(nodes));
             return;

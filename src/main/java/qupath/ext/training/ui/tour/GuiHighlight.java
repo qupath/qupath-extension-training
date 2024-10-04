@@ -51,17 +51,18 @@ class GuiHighlight {
 
         var pane = new BorderPane(rect);
         pane.getStyleClass().setAll("tour-highlight-pane");
+
+        // Setting transparent because I'd like (I think) clicks to still pass through whatever is highlighted.
+        // I can only confirm this doesn't work on macOS though... possibly because of
+        // https://bugs.openjdk.org/browse/JDK-8088104
+        rect.setMouseTransparent(true);
+        pane.setMouseTransparent(true);
+
         var scene = new Scene(pane, Color.TRANSPARENT);
+
         // This was previously used to find highlight windows to close, but may no longer be needed
         stage.getProperties().put("_INSTRUCTION_HIGHLIGHT", true);
         stage.setScene(scene);
-
-        scene.setOnMouseClicked(event -> {
-            if (event.getClickCount() > 1) {
-                stage.close();
-                event.consume();
-            }
-        });
 
         scene.getStylesheets().add(GuiTour.class.getClassLoader().getResource("css/styles.css").toExternalForm());
 
@@ -124,7 +125,7 @@ class GuiHighlight {
         var firstNode = nodes.getFirst();
         tryToEnsureVisible(firstNode);
 
-        var bounds = computeBoundsForAll(nodes);
+        var bounds = TourUtils.computeBoundsForAll(nodes);
 
         // Ensure we have a stage with the required owner window
         ensureInitializedForOwner(firstNode);
@@ -152,26 +153,6 @@ class GuiHighlight {
         stage.show();
     }
 
-    private static Bounds computeBoundsForAll(List<? extends Node> nodes) {
-        var firstNode = nodes.getFirst();
-        var bounds = firstNode.localToScreen(firstNode.getBoundsInLocal());
-        if (nodes.size() > 1) {
-            double minX = bounds.getMinX();
-            double minY = bounds.getMinY();
-            double maxX = bounds.getMaxX();
-            double maxY = bounds.getMaxY();
-            for (int i = 1; i < nodes.size(); i++) {
-                var tempNode = nodes.get(i);
-                var tempBounds = tempNode.localToScreen(tempNode.getBoundsInLocal());
-                minX = Math.min(minX, tempBounds.getMinX());
-                minY = Math.min(minY, tempBounds.getMinY());
-                maxX = Math.max(maxX, tempBounds.getMaxX());
-                maxY = Math.max(maxY, tempBounds.getMaxY());
-            }
-            bounds = new BoundingBox(minX, minY, maxX - minX, maxY - minY);
-        }
-        return bounds;
-    }
 
     /**
      * Try to ensure that a node is visible.
