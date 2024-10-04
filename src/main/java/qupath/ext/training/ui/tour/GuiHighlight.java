@@ -1,5 +1,8 @@
 package qupath.ext.training.ui.tour;
 
+import javafx.animation.Transition;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -12,6 +15,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import javafx.util.Duration;
 import qupath.fx.utils.FXUtils;
 
 import java.util.List;
@@ -25,6 +29,7 @@ class GuiHighlight {
 
     private Stage stage;
     private Rectangle rectangle;
+    private BooleanProperty doAnimate = new SimpleBooleanProperty(true);
 
     public GuiHighlight(Window defaultOwner) {
         this.defaultOwner = defaultOwner;
@@ -42,11 +47,12 @@ class GuiHighlight {
         stage.initOwner(owner);
 
         var rect = new Rectangle();
-        rect.getStyleClass().addAll("tour", "highlight");
+        rect.getStyleClass().addAll("tour-highlight-rect");
 
         var pane = new BorderPane(rect);
-        pane.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
+        pane.getStyleClass().setAll("tour-highlight-pane");
         var scene = new Scene(pane, Color.TRANSPARENT);
+        // This was previously used to find highlight windows to close, but may no longer be needed
         stage.getProperties().put("_INSTRUCTION_HIGHLIGHT", true);
         stage.setScene(scene);
 
@@ -113,9 +119,6 @@ class GuiHighlight {
             return;
         }
 
-        // Hide any existing highlights
-        hideAllHighlightWindows();
-
         // Try to ensure any tab is visible
         // (We assume that, if we have multiple nodes, all are in the same tab)
         var firstNode = nodes.getFirst();
@@ -125,37 +128,28 @@ class GuiHighlight {
 
         // Ensure we have a stage with the required owner window
         ensureInitializedForOwner(firstNode);
-
         double pad = 4;
-        // TODO: Consider animation
-        rectangle.setWidth(bounds.getWidth() + pad * 2);
-        rectangle.setHeight(bounds.getHeight() + pad * 2);
-        stage.setX(bounds.getMinX() - pad);
-        stage.setY(bounds.getMinY() - pad);
-
-        rectangle.setMouseTransparent(true);
-
-        //        // Create a short animation to highlight the button
-//        var transparent = new KeyValue(rect.opacityProperty(), 0.5);
-//        var opaque = new KeyValue(rect.opacityProperty(), 1.0);
-//        var tl = new Timeline();
-//        tl.getKeyFrames().addAll(
-//                new KeyFrame(Duration.ZERO, transparent),
-//                new KeyFrame(Duration.millis(500), opaque),
-//                new KeyFrame(Duration.millis(1000), transparent)
-//        );
-//        tl.setCycleCount(5)
-//        tl.setOnFinished(e -> stage.close());
-//        tl.playFromStart();
-
+        // Target x,y for the stage - allow padding + 1 extra pixel for the stage itself
+        // (this seems to give better centering of the highlights, at least on macOS)
+        double targetX = bounds.getMinX() - pad - 1;
+        double targetY = bounds.getMinY() - pad - 1;
+        if (!doAnimate.get() || !stage.isShowing() || rectangle.getWidth() == 0 || rectangle.getHeight() == 0) {
+            stage.hide();
+            rectangle.setWidth(bounds.getWidth() + pad * 2);
+            rectangle.setHeight(bounds.getHeight() + pad * 2);
+            stage.setX(targetX);
+            stage.setY(targetY);
+        } else {
+            // I wasn't able to get animation working for both stage x,y location and rectangle width,height -
+            // there seemed to be a bug whereby the simultaneous changing of the width,height resulted in the
+            // x,y coordinates being displaced.
+            rectangle.setWidth(bounds.getWidth() + 2 * pad);
+            rectangle.setHeight(bounds.getHeight() + 2 * pad);
+            stage.sizeToScene();
+            var animation = new HighlightTransition(stage, Duration.millis(300), targetX, targetY);
+            animation.playFromStart();
+        }
         stage.show();
-    }
-
-    private void hideAllHighlightWindows() {
-        List.copyOf(Window.getWindows())
-                .stream()
-                .filter(stage -> Boolean.TRUE.equals(stage.getProperties().getOrDefault("_INSTRUCTION_HIGHLIGHT", Boolean.FALSE)))
-                .forEach(Window::hide);
     }
 
     private static Bounds computeBoundsForAll(List<? extends Node> nodes) {
@@ -213,6 +207,32 @@ class GuiHighlight {
                     .orElse(null);
         }
         return searchForTab(node.getParent());
+    }
+
+    /**
+     * Move a stage to a target X and Y.
+     * Note that Stage.setX() and Stage.setY() ominously report that they may be ignored on some platforms.
+     */
+    private static class HighlightTransition extends Transition {
+
+        private final Stage stage;
+        private final double startX, startY, targetX, targetY;
+
+        private HighlightTransition(Stage stage, Duration cycleDuration, double targetX, double targetY) {
+            this.stage = stage;
+            this.startX = stage.getX();
+            this.startY = stage.getY();
+            this.targetX = targetX;
+            this.targetY = targetY;
+            setCycleDuration(cycleDuration);
+        }
+
+        @Override
+        protected void interpolate(double frac) {
+            stage.setX(startX + frac * (targetX - startX));
+            stage.setY(startY + frac * (targetY - startY));
+        }
+
     }
 
 }
