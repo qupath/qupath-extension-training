@@ -1,0 +1,5 @@
+.tour.highlight {
+    -fx-fill: rgba(255, 165, 0, 0.3);
+    -fx-stroke: orange;
+    -fx-stroke-width: 2.0;
+}

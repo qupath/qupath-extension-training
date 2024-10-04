@@ -4,23 +4,14 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.BoundingBox;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Pagination;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.Window;
 import org.controlsfx.control.action.Action;
-import qupath.fx.utils.FXUtils;
 import qupath.lib.common.GeneralTools;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.viewer.tools.PathTools;
@@ -35,6 +26,8 @@ public class GuiTour implements Runnable {
     private Pagination pagination;
     private Stage stage;
 
+    private GuiHighlight highlight;
+
     public GuiTour(QuPathGUI qupath) {
         this.qupath = qupath;
     }
@@ -43,6 +36,7 @@ public class GuiTour implements Runnable {
         this.items = createInstructions(qupath);
         this.pagination = createPagination();
         this.stage = createStage();
+        this.highlight = new GuiHighlight(qupath.getStage());
     }
 
 
@@ -170,6 +164,10 @@ public class GuiTour implements Runnable {
         stage.setTitle("QuPath Tour");
         var scene = new Scene(pagination);
         stage.setScene(scene);
+        stage.setOnCloseRequest(e -> {
+            if (highlight != null)
+                highlight.hide();
+        });
         return stage;
     }
 
@@ -240,114 +238,17 @@ public class GuiTour implements Runnable {
 
 
 
-
     /**
      * Highlight a node to help the user find it.
      * @param nodes
      */
-    static void highlightNodes(List<? extends Node> nodes) {
+    void highlightNodes(List<? extends Node> nodes) {
         if (!Platform.isFxApplicationThread()) {
             Platform.runLater(() -> highlightNodes(nodes));
             return;
         }
-
-        // Hide any existing instructions
-        List.copyOf(Window.getWindows())
-                .stream()
-                .filter(stage -> Boolean.TRUE.equals(stage.getProperties().getOrDefault("_INSTRUCTION_HIGHLIGHT", Boolean.FALSE)))
-                .forEach(Window::hide);
-
-        // Don't highlight anything if no nodes
-        if (nodes.isEmpty())
-            return;
-
-        // Try to ensure any tab is visible
-        // (We assume that, if we have multiple nodes, all are in the same tab)
-        var firstNode = nodes.getFirst();
-        var tab = searchForTab(firstNode);
-        if (tab != null) {
-            tab.getTabPane().getSelectionModel().select(tab);
-        }
-
-        var bounds = firstNode.localToScreen(firstNode.getBoundsInLocal());
-        if (nodes.size() > 1) {
-            double minX = bounds.getMinX();
-            double minY = bounds.getMinY();
-            double maxX = bounds.getMaxX();
-            double maxY = bounds.getMaxY();
-            for (int i = 1; i < nodes.size(); i++) {
-                var tempNode = nodes.get(i);
-                var tempBounds = tempNode.localToScreen(tempNode.getBoundsInLocal());
-                minX = Math.min(minX, tempBounds.getMinX());
-                minY = Math.min(minY, tempBounds.getMinY());
-                maxX = Math.max(maxX, tempBounds.getMaxX());
-                maxY = Math.max(maxY, tempBounds.getMaxY());
-            }
-            bounds = new BoundingBox(minX, minY, maxX-minX, maxY-minY);
-        }
-
-        double pad = 4.0;
-        var rect = new Rectangle(
-                0,
-                0,
-                bounds.getWidth()+2*pad,
-                bounds.getHeight()+2*pad);
-        rect.setStyle("-fx-fill: rgba(255, 165, 0, 0.3); -fx-stroke: orange; -fx-stroke-width: 2.0;");
-        var stage = new Stage();
-        stage.initStyle(StageStyle.TRANSPARENT);
-        stage.initOwner(FXUtils.getWindow(firstNode));
-
-        var pane = new BorderPane(rect);
-        pane.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
-        var scene = new Scene(pane, Color.TRANSPARENT);
-        stage.getProperties().put("_INSTRUCTION_HIGHLIGHT", true);
-        stage.setScene(scene);
-        stage.setX(bounds.getMinX()-pad);
-        stage.setY(bounds.getMinY()-pad);
-
-        scene.setOnMouseClicked(event -> {
-            if (event.getClickCount() > 1) {
-                stage.close();
-                event.consume();
-            }
-        });
-
-        stage.show();
-//        // Create a short animation to highlight the button
-//        var transparent = new KeyValue(rect.opacityProperty(), 0.5);
-//        var opaque = new KeyValue(rect.opacityProperty(), 1.0);
-//        var tl = new Timeline();
-//        tl.getKeyFrames().addAll(
-//                new KeyFrame(Duration.ZERO, transparent),
-//                new KeyFrame(Duration.millis(500), opaque),
-//                new KeyFrame(Duration.millis(1000), transparent)
-//        );
-//        tl.setCycleCount(5)
-//        tl.setOnFinished(e -> stage.close());
-//        tl.playFromStart();
+        highlight.highlightNodes(nodes);
     }
 
-
-    /**
-     * Search for a tab that contains a specified node.
-     * This is useful when we want to highlight anything under a TabPane,
-     * because the containing tab might not be visible.
-     * @param node
-     * @return a tab if found, or null
-     */
-    private static Tab searchForTab(Node node) {
-        if (node == null)
-            return null;
-        var grandparent = node.getParent() == null ? null : node.getParent().getParent();
-        if (grandparent instanceof TabPane tabPane) {
-            // This is very ugly, but finding the tab is awkward
-            // (TabPaneSkin gets in the way)
-            return tabPane.getTabs().stream()
-                    .filter(tab -> tab.getContent() == node)
-                    .findFirst()
-                    .orElse(null);
-        }
-        return searchForTab(node.getParent());
-    }
 
 }
