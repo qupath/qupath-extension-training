@@ -131,7 +131,7 @@ class GuiHighlight {
         tryToEnsureVisible(firstNode);
 
         // This can occur whenever we're part of a toolbar overflow
-        if (!firstNode.isVisible() || !firstNode.getParent().isVisible()) {
+        if (!firstNode.isVisible() || (firstNode.getParent() != null && !firstNode.getParent().isVisible())) {
             hide();
             return;
         }

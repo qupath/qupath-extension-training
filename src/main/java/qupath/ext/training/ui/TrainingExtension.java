@@ -63,7 +63,7 @@ public class TrainingExtension implements QuPathExtension, GitHubProject {
 		isInstalled = true;
 
 		var tour = new GuiTour(qupath);
-		var item = new MenuItem("Tour");
+		var item = new MenuItem("QuPath User Interface Tour");
 		item.setOnAction(e -> tour.run());
 		qupath.getMenu("Extensions>Training", true).getItems().add(item);
 	}
