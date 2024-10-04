@@ -98,12 +98,7 @@ public class TourUtils {
                 .parse(sb.toString());
 
         var html = HtmlRenderer.builder()
-                .attributeProviderFactory(new AttributeProviderFactory() {
-                    @Override
-                    public AttributeProvider create(AttributeProviderContext context) {
-                        return new AdmonitionAttributeProvider();
-                    }
-                })
+                .attributeProviderFactory(context -> new AdmonitionAttributeProvider())
                 .build()
                 .render(doc);
 

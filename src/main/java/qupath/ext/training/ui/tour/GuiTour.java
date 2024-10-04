@@ -7,11 +7,14 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Pagination;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.controlsfx.control.action.Action;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import qupath.lib.common.GeneralTools;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.viewer.tools.PathTools;
@@ -19,6 +22,8 @@ import qupath.lib.gui.viewer.tools.PathTools;
 import java.util.List;
 
 public class GuiTour implements Runnable {
+
+    private static final Logger logger = LoggerFactory.getLogger(GuiTour.class);
 
     private final QuPathGUI qupath;
 
@@ -43,51 +48,29 @@ public class GuiTour implements Runnable {
     private static ObservableList<TourItem> createInstructions(QuPathGUI qupath) {
         return FXCollections.observableArrayList(
                 createInstruction(
-                        "Tour of QuPath's user interface",
-                        "Click through each page for a quick introduction to the main parts of QuPath's user interface.\n\n" +
-                                "> **Tip:** You can also use the left and right arrow keys.",
+                        "intro",
                         qupath.getStage().getScene().getRoot()
                 ),
                 createInstruction(
-                        "Tab pane",
-                        "This is the main tab pane on the left.\n\n" +
-                        "Here you can select images in a project, view metadata for each image, " +
-                                "see a list of annotations, and create a 'Workflow' from commands you have run.\n\n" +
-                                "> **Info:** This used to be called the 'Analysis Pane'.\n" +
-                                "It  was renamed because it isn't really dedicated to analysis...",
+                        "tab-pane",
                         qupath.getAnalysisTabPane()
                 ),
                 createInstruction(
-                        "Viewer",
-                        "The main viewer for displaying images - and objects created for images.\n\n" +
-                                "Right-click on this to access a context menu with additional options - which includes " +
-                                "creating a grid of viewers to display several images at the same time.\n\n" +
-                                "> **Tip:** Drag & drop project folders, images or scripts onto the viewer to open them quickly - " +
-                                "there's no need to use the _File_ menu to open most things in QuPath.",
+                        "viewer",
                         qupath.getViewer().getView() // Consider what to do if the user already has multiple viewers
                 ),
                 createInstruction(
-                        "Toolbar",
-                        "This is the main toolbar, where you can access many of the most commonly used actions.\n\n" +
-                                "Click on the buttons to perform actions, or right-click to access additional options.\n\n" +
-                                "> **Tip:** Hover the cursor over a button for an explanation of what it does, " +
-                                "and also to see any shortcut key associated with the button.",
+                        "toolbar",
                         qupath.getToolBar()
                 ),
                 createToolbarInstruction(
-                        "Toggle 'Tab pane'",
-                        "Show or hide the main tab pane on the left.",
+                        "toolbar.tab-pane",
                         qupath.getCommonActions().SHOW_ANALYSIS_PANE),
                 createToolbarInstruction(
-                        "Move tool",
-                        "Activate this, then click and drag in the viewer to pan around the image or to move objects.\n\n" +
-                                "You should have the 'Move tool' active most of the time when using QuPath, " +
-                                "to avoid accidentally drawing things.",
+                        "toolbar.move",
                         qupath.getToolManager().getToolAction(PathTools.MOVE)),
                 createToolbarInstruction(
-                        "Drawing tools",
-                        "Active one of these and then click in the viewer to draw new annotations on an image.\n\n" +
-                                "> **Caution:** _As long as 'Selection mode' isn't enabled - see the next instruction!_",
+                        "toolbar.drawing",
                         qupath.getToolManager().getToolAction(PathTools.RECTANGLE),
                         qupath.getToolManager().getToolAction(
                                 qupath.getToolManager().getTools()
@@ -96,18 +79,10 @@ public class GuiTour implements Runnable {
                                         .findFirst()
                                         .orElse(PathTools.BRUSH))),
                 createToolbarInstruction(
-                        "Selection mode",
-                        "Toggle 'Selection mode'.\n\n" +
-                                "This switches the behavior of the drawing tools, so that they " +
-                                "select objects instead of drawing new ones.\n\n" +
-                                "> **Tip:** By default, selected objects are shown in _yellow_. " +
-                                "You can change this behavior in the 'Preferences...'",
+                        "toolbar.selection-mode",
                         qupath.getToolManager().getSelectionModeAction()),
                 createToolbarInstruction(
-                        "Brightness/Contrast dialog",
-                        "Open the dialog to adjust the brightness and contrast of the image.\n\n" +
-                                "You can also use this to switch between different channels, or change " +
-                                "the colors used to display channels for some image types.",
+                        "toolbar.bc",
                         qupath.getCommonActions().BRIGHTNESS_CONTRAST),
                 // Need to make magnification accessible here...
 //        createToolbarInstruction(
@@ -118,20 +93,19 @@ public class GuiTour implements Runnable {
 //                        "Otherwise, 1x means viewing the image at 'full resolution'.",
 //                qupath.getContextActions().MAGNIFICATION),
                 createToolbarInstruction(
-                        "Zoom-to-fit",
-                        "Change the magnification of the current image so that it fits within the current viewer.",
+                        "toolbar.zoom-to-fit",
                         qupath.getViewerActions().ZOOM_TO_FIT),
                 createToolbarInstruction(
-                        "Show annotations",
-                        "Toggle the visibility of annotations in the viewer.",
+                        "toolbar.show-annotations",
                         qupath.getOverlayActions().SHOW_ANNOTATIONS),
                 createToolbarInstruction(
-                        "Show detections",
-                        "Toggle the visibility of detections (e.g. cells) in the viewer.",
+                        "toolbar.fill-annotations",
+                        qupath.getOverlayActions().FILL_ANNOTATIONS),
+                createToolbarInstruction(
+                        "toolbar.show-detections",
                         qupath.getOverlayActions().SHOW_DETECTIONS),
                 createToolbarInstruction(
-                        "Show overview",
-                        "Toggle the visibility of the overview image in the viewer.",
+                        "toolbar.show-overview",
                         qupath.getViewerActions().SHOW_OVERVIEW)
         );
     }
@@ -162,7 +136,7 @@ public class GuiTour implements Runnable {
         stage.initOwner(qupath.getStage());
         stage.initModality(Modality.NONE);
         stage.setAlwaysOnTop(true); // It'll also be on top of other applications!
-        stage.setTitle("QuPath Tour");
+        stage.setTitle(TourResources.getString("title"));
         var scene = new Scene(pagination);
         stage.setScene(scene);
         stage.setOnCloseRequest(e -> {
@@ -205,17 +179,16 @@ public class GuiTour implements Runnable {
 
     /**
      * Create a UI component instruction for actions that are displayed as buttons in the toolbar.
-     * @param title a short title
-     * @param text the main text to display
+     * @param key a resource bundle key
      * @param actions the actions to highlight; we'll look for these in the toolbar
      * @return
      */
-    static TourItem createToolbarInstruction(String title, String text, Action... actions) {
+    static TourItem createToolbarInstruction(String key, Action... actions) {
         var items = QuPathGUI.getInstance().getToolBar().getItems()
                 .stream()
                 .filter(node -> containsActionProperty(node, actions))
                 .toList();
-        return new TourItem(title, text, items);
+        return new TourItem(key, items, null);
     }
 
     /**
@@ -228,6 +201,15 @@ public class GuiTour implements Runnable {
     static TourItem createInstruction(String title, String text, Node... nodes) {
         return new TourItem(title, text, List.of(nodes));
     }
+
+    static TourItem createInstruction(String key, Node... nodes) {
+        return new TourItem(key, List.of(nodes), null);
+    }
+
+    static TourItem createInstruction(String key, Image image, Node... nodes) {
+        return new TourItem(key, List.of(nodes), image);
+    }
+
 
     private static boolean containsActionProperty(Node node, Action... actions) {
         for (var action : actions) {
