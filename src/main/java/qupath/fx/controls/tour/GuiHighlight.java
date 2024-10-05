@@ -1,4 +1,4 @@
-package qupath.ext.training.ui.tour;
+package qupath.fx.controls.tour;
 
 import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
@@ -15,30 +15,27 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import qupath.ext.training.ui.tour.GuiTourCommand;
 import qupath.fx.utils.FXUtils;
 
 import java.util.List;
 
 /**
  * Manage a window that can act as an overlay to highlight GUI elements.
+ * <p>
+ * Currently, this works by creating a transparent stage with a rectangle that can be moved and resized to highlight.
+ * In the future, this implementation might be changed (e.g. to apply CSS to the highlighted nodes directly).
  */
 class GuiHighlight {
 
-    private final Window defaultOwner;
-
     private Stage stage;
     private Rectangle rectangle;
-    private BooleanProperty doAnimate = new SimpleBooleanProperty(true);
+    private BooleanProperty animateProperty = new SimpleBooleanProperty(true);
 
     /**
-     * Create a new highlighter with a default owner.
-     * @param defaultOwner a default owner for the highlight window in case another owner
-     *                     cannot be found from the nodes to be highlighted.
-     *                     (This is typically the main QuPath window, but unlikely to be used anyway)
+     * Create a new highlighter.
      */
-    public GuiHighlight(Window defaultOwner) {
-        this.defaultOwner = defaultOwner;
-    }
+    public GuiHighlight() {}
 
     /**
      * Hide the highlight window.
@@ -49,7 +46,25 @@ class GuiHighlight {
         }
     }
 
-    private void initialize(Window owner) {
+    /**
+     * Show the highlight window, if available.
+     */
+    public void show() {
+        if (stage != null) {
+            stage.show();
+        }
+    }
+
+    /**
+     * Get property to control whether highlights should animate when moving.
+     */
+    public BooleanProperty animateProperty() {
+        return animateProperty;
+    }
+
+    private boolean initialize(Window owner) {
+        if (owner == null)
+            return false;
         var stage = new Stage();
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.initOwner(owner);
@@ -73,10 +88,11 @@ class GuiHighlight {
         stage.getProperties().put("_INSTRUCTION_HIGHLIGHT", true);
         stage.setScene(scene);
 
-        scene.getStylesheets().add(GuiTourCommand.class.getClassLoader().getResource("css/styles.css").toExternalForm());
+        scene.getStylesheets().add(GuiTourCommand.class.getClassLoader().getResource("css/tour.css").toExternalForm());
 
         this.rectangle = rect;
         this.stage = stage;
+        return true;
     }
 
     private void handleMouseClick(MouseEvent event) {
@@ -89,11 +105,10 @@ class GuiHighlight {
      * or default owner if no owner could be found.
      *
      * @param node
+     * @return true if the stage is initialized and has the correct owner, or false if no owner is found
      */
-    private void ensureInitializedForOwner(Node node) {
+    private boolean ensureInitializedForOwner(Node node) {
         var owner = node == null ? null : FXUtils.getWindow(node);
-        if (owner == null)
-            owner = defaultOwner;
         if (stage != null) {
             if (stage.getOwner() != owner) {
                 stage.hide();
@@ -101,7 +116,9 @@ class GuiHighlight {
             }
         }
         if (stage == null)
-            initialize(owner);
+            return initialize(owner);
+        else
+            return owner != null;
     }
 
     /**
@@ -125,6 +142,8 @@ class GuiHighlight {
      * @param nodes
      */
     public void highlightNodes(List<? extends Node> nodes) {
+        var lastFocusedWindow = findFocusedWindow();
+
         nodes = nodes.stream()
                 .filter(Node::isVisible)
                 .toList();
@@ -145,16 +164,21 @@ class GuiHighlight {
             return;
         }
 
-        var bounds = TourUtils.computeBoundsForAll(nodes);
+        // Ensure we have a stage with the required owner window,
+        // and return if there is no owner to be found
+        if (!ensureInitializedForOwner(firstNode)) {
+            hide();
+            return;
+        }
 
-        // Ensure we have a stage with the required owner window
-        ensureInitializedForOwner(firstNode);
+        var bounds = TourUtils.computeScreenBounds(nodes);
+
         double pad = 4;
         // Target x,y for the stage - allow padding + 1 extra pixel for the stage itself
         // (this seems to give better centering of the highlights, at least on macOS)
         double targetX = bounds.getMinX() - pad - 1;
         double targetY = bounds.getMinY() - pad - 1;
-        if (!doAnimate.get() || !stage.isShowing() || rectangle.getWidth() == 0 || rectangle.getHeight() == 0) {
+        if (!animateProperty.get() || !stage.isShowing() || rectangle.getWidth() == 0 || rectangle.getHeight() == 0) {
             stage.hide();
             rectangle.setWidth(bounds.getWidth() + pad * 2);
             rectangle.setHeight(bounds.getHeight() + pad * 2);
@@ -171,7 +195,20 @@ class GuiHighlight {
             animation.playFromStart();
         }
         stage.show();
+
+        // We don't want to steal focus from the user
+        if (lastFocusedWindow != null)
+            lastFocusedWindow.requestFocus();
     }
+
+    private static Window findFocusedWindow() {
+        return Window.getWindows()
+                .stream()
+                .filter(Window::isFocused)
+                .findFirst()
+                .orElse(null);
+    }
+
 
 
     /**
