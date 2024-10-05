@@ -10,31 +10,28 @@ import java.util.List;
 public class TourItem {
 
     private String key;
-
-    private String title;
-    private String text;
     private Image image;
     private List<Node> nodes;
 
-    TourItem(String title, String text, Collection<? extends Node> nodes) {
-        this.title = title;
-        this.text = text;
-        this.nodes = List.copyOf(nodes);
-    }
-
-    TourItem(String key, Collection<? extends Node> nodes, Image image) {
+    private TourItem(String key, Collection<? extends Node> nodes, Image image) {
         this.key = key;
         this.nodes = nodes == null ? Collections.emptyList() : List.copyOf(nodes);
         this.image = image;
+    }
+
+    public static TourItem create(String key, Collection<? extends Node> nodes) {
+        return new TourItem(key, nodes, null);
+    }
+
+    public static TourItem createWithImage(String key, Collection<? extends Node> nodes, Image image) {
+        return new TourItem(key, nodes, image);
     }
 
     /**
      * Get the title to display.
      * @return
      */
-    String getTitle() {
-        if (title != null)
-            return title;
+    public String getTitle() {
         return TourResources.getTitle(key);
     }
 
@@ -43,9 +40,7 @@ public class TourItem {
      * This is typically markdown.
      * @return
      */
-    String getText() {
-        if (text != null)
-            return text;
+    public String getText() {
         return TourResources.getText(key);
     }
 
@@ -53,7 +48,7 @@ public class TourItem {
      * Get a static image to display, or null if no static image is stored.
      * @return
      */
-    Image getImage() {
+    public Image getImage() {
         return image;
     }
 
@@ -61,13 +56,13 @@ public class TourItem {
      * Get an unmodifiable list of nodes to display.
      * @return
      */
-    List<Node> getNodes() {
+    public List<Node> getNodes() {
         return nodes;
     }
 
     @Override
     public String toString() {
-        return text;
+        return "TourItem[" + getTitle() + "]";
     }
 
 }

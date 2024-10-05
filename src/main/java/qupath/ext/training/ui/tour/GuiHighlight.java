@@ -30,10 +30,19 @@ class GuiHighlight {
     private Rectangle rectangle;
     private BooleanProperty doAnimate = new SimpleBooleanProperty(true);
 
+    /**
+     * Create a new highlighter with a default owner.
+     * @param defaultOwner a default owner for the highlight window in case another owner
+     *                     cannot be found from the nodes to be highlighted.
+     *                     (This is typically the main QuPath window, but unlikely to be used anyway)
+     */
     public GuiHighlight(Window defaultOwner) {
         this.defaultOwner = defaultOwner;
     }
 
+    /**
+     * Hide the highlight window.
+     */
     public void hide() {
         if (stage != null) {
             stage.hide();
@@ -64,7 +73,7 @@ class GuiHighlight {
         stage.getProperties().put("_INSTRUCTION_HIGHLIGHT", true);
         stage.setScene(scene);
 
-        scene.getStylesheets().add(GuiTour.class.getClassLoader().getResource("css/styles.css").toExternalForm());
+        scene.getStylesheets().add(GuiTourCommand.class.getClassLoader().getResource("css/styles.css").toExternalForm());
 
         this.rectangle = rect;
         this.stage = stage;
@@ -76,7 +85,7 @@ class GuiHighlight {
     }
 
     /**
-     * Ensure that we have a stage that shares the same owner as the provided node,
+     * Ensure that we have a highlight stage that shares the same owner as the provided node,
      * or default owner if no owner could be found.
      *
      * @param node
@@ -96,12 +105,12 @@ class GuiHighlight {
     }
 
     /**
-     * Highlight the specified nodes.
-     * @param nodes
+     * Highlight a single node.
+     * @param node
      * @see #highlightNodes(List)
      */
-    public void highlightNodes(Node... nodes) {
-        highlightNodes(List.of(nodes));
+    public void highlightNode(Node node) {
+        highlightNodes(List.of(node));
     }
 
     /**
@@ -167,8 +176,9 @@ class GuiHighlight {
 
     /**
      * Try to ensure that a node is visible.
-     * Currently, this only handles tabpanes; in the future, we might need to worry about windows as well.
-     *
+     * <p>
+     * Currently, this only handles tab panes;
+     * in the future, we might need to worry about windows as well.
      * @param node
      */
     void tryToEnsureVisible(Node node) {
@@ -181,6 +191,7 @@ class GuiHighlight {
 
     /**
      * Search for a tab that contains a specified node.
+     * <p>
      * This is useful when we want to highlight anything under a TabPane,
      * because the containing tab might not be visible.
      * @param node
@@ -202,7 +213,7 @@ class GuiHighlight {
     }
 
     /**
-     * Move a stage to a target X and Y.
+     * Transition to animate moving a stage to a target X and Y.
      * Note that Stage.setX() and Stage.setY() ominously report that they may be ignored on some platforms.
      */
     private static class HighlightTransition extends Transition {

@@ -10,23 +10,24 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
-import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.controlsfx.control.action.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import qupath.lib.common.GeneralTools;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.viewer.tools.PathTools;
 
 import java.util.List;
 
-public class GuiTour implements Runnable {
+/**
+ * A command to run a tour of the QuPath user interface.
+ * <p>
+ * This is intended to help new users understand what is going on quickly.
+ */
+public class GuiTourCommand implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(GuiTour.class);
+    private static final Logger logger = LoggerFactory.getLogger(GuiTourCommand.class);
 
     private final QuPathGUI qupath;
 
@@ -36,43 +37,43 @@ public class GuiTour implements Runnable {
 
     private GuiHighlight highlight;
 
-    public GuiTour(QuPathGUI qupath) {
+    public GuiTourCommand(QuPathGUI qupath) {
         this.qupath = qupath;
     }
 
     private void initialize() {
-        this.items = createInstructions(qupath);
+        this.items = createItems(qupath);
         this.pagination = createPagination();
         this.stage = createStage();
         this.highlight = new GuiHighlight(qupath.getStage());
     }
 
 
-    private ObservableList<TourItem> createInstructions(QuPathGUI qupath) {
+    private ObservableList<TourItem> createItems(QuPathGUI qupath) {
         return FXCollections.observableArrayList(
-                createInstruction(
+                createItem(
                         "intro",
                         qupath.getStage().getScene().getRoot()
                 ),
-                createInstruction(
+                createItem(
                         "tab-pane",
                         qupath.getAnalysisTabPane()
                 ),
-                createInstruction(
+                createItem(
                         "viewer",
                         qupath.getViewer().getView() // Consider what to do if the user already has multiple viewers
                 ),
-                createInstruction(
+                createItem(
                         "toolbar",
                         qupath.getToolBar()
                 ),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.tab-pane",
                         qupath.getCommonActions().SHOW_ANALYSIS_PANE),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.move",
                         qupath.getToolManager().getToolAction(PathTools.MOVE)),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.drawing",
                         qupath.getToolManager().getToolAction(PathTools.RECTANGLE),
                         qupath.getToolManager().getToolAction(
@@ -82,56 +83,48 @@ public class GuiTour implements Runnable {
                                         .findFirst()
                                         .orElse(PathTools.BRUSH))),
 
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.points",
                         qupath.getToolManager().getToolAction(PathTools.POINTS)
                 ),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.selection-mode",
                         qupath.getToolManager().getSelectionModeAction()),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.bc",
                         qupath.getCommonActions().BRIGHTNESS_CONTRAST),
-                // Need to make magnification accessible here...
-//        createToolbarInstruction(
-//                "Magnification",
-//                "Check the magnification of the image as it currently appears in the viewer.\n" +
-//                        "If you have a microscopy image that stores the magnification value of the " +
-//                        "objective lens, this will be used to calculate the magnification here.\n" +
-//                        "Otherwise, 1x means viewing the image at 'full resolution'.",
-//                qupath.getContextActions().MAGNIFICATION),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.zoom-to-fit",
                         qupath.getViewerActions().ZOOM_TO_FIT),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.show-annotations",
                         qupath.getOverlayActions().SHOW_ANNOTATIONS),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.fill-annotations",
                         qupath.getOverlayActions().FILL_ANNOTATIONS),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.show-names",
                         qupath.getOverlayActions().SHOW_NAMES),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.show-tma",
                         qupath.getOverlayActions().SHOW_TMA_GRID),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.show-detections",
                         qupath.getOverlayActions().SHOW_DETECTIONS),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.fill-detections",
                         qupath.getOverlayActions().FILL_DETECTIONS),
 
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.show-connections",
                         qupath.getOverlayActions().SHOW_CONNECTIONS),
 
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.show-classification",
                         qupath.getOverlayActions().SHOW_PIXEL_CLASSIFICATION),
 
                 // TODO: Access opacity slider in a more robust way
-                createInstruction(
+                createItem(
                         "toolbar.opacity-slider",
                         qupath.getToolBar().getItems().stream()
                                 .filter(n -> n instanceof Slider)
@@ -139,59 +132,59 @@ public class GuiTour implements Runnable {
                                 .orElse(null)),
 
                 // TODO: Access measurement menu in a more robust way
-                createInstruction(
+                createItem(
                         "toolbar.measurement-tables",
                         qupath.getToolBar().getItems().stream()
                                 .filter(n -> n instanceof MenuButton)
                                 .findFirst()
                                 .orElse(null)),
 
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.script-editor",
                         qupath.getAutomateActions().SCRIPT_EDITOR),
 
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.show-overview",
                         qupath.getViewerActions().SHOW_OVERVIEW),
 
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.show-location",
                         qupath.getViewerActions().SHOW_LOCATION),
 
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.scalebar",
                         qupath.getViewerActions().SHOW_SCALEBAR
                 ),
 
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.prefs",
                         qupath.getCommonActions().PREFERENCES
                 ),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.log",
                         qupath.getCommonActions().SHOW_LOG
                 ),
-                createToolbarInstruction(
+                createToolbarItem(
                         "toolbar.help",
                         qupath.getCommonActions().HELP_VIEWER
                 ),
-                createTabPaneInstruction(
+                createTabPaneItem(
                         "tab-pane.project",
                         "Project"
                 ),
-                createTabPaneInstruction(
+                createTabPaneItem(
                         "tab-pane.image",
                         "Image"
                 ),
-                createTabPaneInstruction(
+                createTabPaneItem(
                         "tab-pane.annotations",
                         "Annotations"
                 ),
-                createTabPaneInstruction(
+                createTabPaneItem(
                         "tab-pane.hierarchy",
                         "Hierarchy"
                 ),
-                createTabPaneInstruction(
+                createTabPaneItem(
                         "tab-pane.workflow",
                         "Workflow"
                 )
@@ -216,8 +209,7 @@ public class GuiTour implements Runnable {
                 stage.requestFocus();
             });
         }
-        var page = TourUtils.createPage(item);
-        return page;
+        return TourUtils.createPage(item);
     }
 
     private Stage createStage() {
@@ -233,25 +225,6 @@ public class GuiTour implements Runnable {
                 highlight.hide();
         });
         return stage;
-    }
-
-    private void handlePageKeyReleased(KeyEvent event) {
-        if (event.isConsumed() || (event.getCode() != KeyCode.LEFT && event.getCode() != KeyCode.RIGHT))
-            return;
-        switch (event.getCode()) {
-            case KeyCode.RIGHT -> incrementPage(1);
-            case KeyCode.LEFT -> incrementPage(-1);
-        }
-        event.consume();
-    }
-
-    private void incrementPage(int increment) {
-        if (pagination == null || pagination.getPageCount() == 0)
-            return;
-        int page = pagination.getCurrentPageIndex() + increment;
-        pagination.setCurrentPageIndex(
-                GeneralTools.clipValue(page, 0, pagination.getPageCount()-1)
-        );
     }
 
     @Override
@@ -272,44 +245,47 @@ public class GuiTour implements Runnable {
      * @param actions the actions to highlight; we'll look for these in the toolbar
      * @return
      */
-    TourItem createToolbarInstruction(String key, Action... actions) {
+    TourItem createToolbarItem(String key, Action... actions) {
         var items = qupath.getToolBar().getItems()
                 .stream()
                 .filter(node -> containsActionProperty(node, actions))
                 .toList();
-        return new TourItem(key, items, null);
+        return TourItem.create(key, items);
     }
 
-    TourItem createTabPaneInstruction(String key, String tabName) {
+    /**
+     * Create a UI component instruction for a specific tab in the tab pane.
+     * TODO: This is a bit fragile, as it relies on the tab name.
+     * @param key
+     * @param tabName
+     * @return
+     */
+    TourItem createTabPaneItem(String key, String tabName) {
         var items = qupath.getAnalysisTabPane()
                 .getTabs()
                 .stream()
                 .filter(tab -> tabName.equals(tab.getText()))
                 .map(Tab::getContent)
                 .toList();
-        return new TourItem(key, items, null);
+        return TourItem.create(key, items);
     }
 
     /**
      * Create a UI component instruction for specific nodes.
-     * @param title a short title
-     * @param text the main text to display
+     * @param key the resource bundle key
      * @param nodes the specific nodes (e.g. buttons) to highlight
      * @return
      */
-    static TourItem createInstruction(String title, String text, Node... nodes) {
-        return new TourItem(title, text, List.of(nodes));
+    private static TourItem createItem(String key, Node... nodes) {
+        return TourItem.create(key, List.of(nodes));
     }
 
-    static TourItem createInstruction(String key, Node... nodes) {
-        return new TourItem(key, List.of(nodes), null);
-    }
-
-    static TourItem createInstruction(String key, Image image, Node... nodes) {
-        return new TourItem(key, List.of(nodes), image);
-    }
-
-
+    /**
+     * Check if a node contains at least one of several specified action properties.
+     * @param node the note to check
+     * @param actions
+     * @return
+     */
     private static boolean containsActionProperty(Node node, Action... actions) {
         for (var action : actions) {
             if (node.getProperties().containsValue(action))
@@ -318,9 +294,8 @@ public class GuiTour implements Runnable {
         return false;
     }
 
-
     /**
-     * Highlight one or more nodes to help the user find it.
+     * Highlight one or more nodes.
      * @param nodes
      */
     private void highlightNodes(List<? extends Node> nodes) {
@@ -330,6 +305,5 @@ public class GuiTour implements Runnable {
         }
         highlight.highlightNodes(nodes);
     }
-
 
 }

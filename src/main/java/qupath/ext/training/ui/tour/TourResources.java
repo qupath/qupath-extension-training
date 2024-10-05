@@ -4,6 +4,9 @@ import java.util.Comparator;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+/**
+ * A helper class to access strings associated with the GUI tour.
+ */
 class TourResources {
 
     private static final ResourceBundle resources = ResourceBundle.getBundle("qupath.ext.training.ui.tour");
