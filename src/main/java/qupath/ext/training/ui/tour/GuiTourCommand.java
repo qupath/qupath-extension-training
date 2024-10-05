@@ -1,13 +1,11 @@
 package qupath.ext.training.ui.tour;
 
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuButton;
-import javafx.scene.control.Pagination;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
 import javafx.stage.Modality;
@@ -31,21 +29,19 @@ public class GuiTourCommand implements Runnable {
 
     private final QuPathGUI qupath;
 
-    private ObservableList<TourItem> items;
-    private Pagination pagination;
+    private GuiTour tour;
     private Stage stage;
 
-    private GuiHighlight highlight;
 
     public GuiTourCommand(QuPathGUI qupath) {
         this.qupath = qupath;
     }
 
     private void initialize() {
-        this.items = createItems(qupath);
-        this.pagination = createPagination();
+        this.tour = new GuiTour();
+        var items = createItems(qupath);
+        this.tour.getItems().setAll(items);
         this.stage = createStage();
-        this.highlight = new GuiHighlight(qupath.getStage());
     }
 
 
@@ -191,26 +187,6 @@ public class GuiTourCommand implements Runnable {
                 );
     }
 
-    private Pagination createPagination() {
-        var pagination = new Pagination();
-        pagination.pageCountProperty().bind(Bindings.size(items));
-        pagination.setPageFactory(this::createPage);
-        return pagination;
-    }
-
-    private Node createPage(int pageIndex) {
-        var item = items.get(pageIndex);
-        // It's important to highlight first, otherwise nodes might not
-        // be visible, and dynamic screenshots don't work
-        var nodesToHighlight = item.getNodes();
-        if (!nodesToHighlight.isEmpty()) {
-            highlightNodes(nodesToHighlight);
-            Platform.runLater(() -> {
-                stage.requestFocus();
-            });
-        }
-        return TourUtils.createPage(item);
-    }
 
     private Stage createStage() {
        var stage = new Stage();
@@ -218,12 +194,8 @@ public class GuiTourCommand implements Runnable {
         stage.initModality(Modality.NONE);
         stage.setAlwaysOnTop(true); // It'll also be on top of other applications!
         stage.setTitle(TourResources.getString("title"));
-        var scene = new Scene(pagination);
+        var scene = new Scene(tour);
         stage.setScene(scene);
-        stage.setOnCloseRequest(e -> {
-            if (highlight != null)
-                highlight.hide();
-        });
         return stage;
     }
 
@@ -250,7 +222,7 @@ public class GuiTourCommand implements Runnable {
                 .stream()
                 .filter(node -> containsActionProperty(node, actions))
                 .toList();
-        return TourItem.create(key, items);
+        return DefaultTourItem.create(key, items);
     }
 
     /**
@@ -267,7 +239,7 @@ public class GuiTourCommand implements Runnable {
                 .filter(tab -> tabName.equals(tab.getText()))
                 .map(Tab::getContent)
                 .toList();
-        return TourItem.create(key, items);
+        return DefaultTourItem.create(key, items);
     }
 
     /**
@@ -277,7 +249,7 @@ public class GuiTourCommand implements Runnable {
      * @return
      */
     private static TourItem createItem(String key, Node... nodes) {
-        return TourItem.create(key, List.of(nodes));
+        return DefaultTourItem.create(key, List.of(nodes));
     }
 
     /**
@@ -292,18 +264,6 @@ public class GuiTourCommand implements Runnable {
                 return true;
         }
         return false;
-    }
-
-    /**
-     * Highlight one or more nodes.
-     * @param nodes
-     */
-    private void highlightNodes(List<? extends Node> nodes) {
-        if (!Platform.isFxApplicationThread()) {
-            Platform.runLater(() -> highlightNodes(nodes));
-            return;
-        }
-        highlight.highlightNodes(nodes);
     }
 
 }

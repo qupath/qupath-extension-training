@@ -37,7 +37,7 @@ public class TourUtils {
      * @param item
      * @return
      */
-    static Node createPage(TourItem item) {
+    static Node createPage(DefaultTourItem item) {
         var webview = WebViews.create(true);
         Platform.runLater(() -> {
             var html = createHtml(item);
@@ -72,10 +72,10 @@ public class TourUtils {
         return bounds;
     }
 
-    private static String createHtml(TourItem item) {
+    private static String createHtml(DefaultTourItem item) {
         var title = item.getTitle();
         var text = item.getText();
-        var nodes = item.getNodes();
+        var nodes = item.getHighlightNodes();
 
         var sb = new StringBuilder();
         if (title != null)
