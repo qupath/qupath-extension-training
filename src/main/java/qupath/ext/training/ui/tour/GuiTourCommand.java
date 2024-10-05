@@ -13,10 +13,13 @@ import javafx.stage.Stage;
 import org.controlsfx.control.action.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import qupath.fx.controls.tour.GuiTour;
+import qupath.fx.controls.tour.TourItem;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.viewer.tools.PathTools;
 
 import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * A command to run a tour of the QuPath user interface.
@@ -26,6 +29,8 @@ import java.util.List;
 public class GuiTourCommand implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(GuiTourCommand.class);
+
+    private static final ResourceBundle resources = ResourceBundle.getBundle("qupath.ext.training.ui.tour");
 
     private final QuPathGUI qupath;
 
@@ -44,7 +49,12 @@ public class GuiTourCommand implements Runnable {
         this.stage = createStage();
     }
 
-
+    /**
+     * Create all the items for the main tour of the QuPath GUI.
+     * We have to do a bit of work to find the UI components, since they weren't written with this in mind...
+     * @param qupath
+     * @return
+     */
     private ObservableList<TourItem> createItems(QuPathGUI qupath) {
         return FXCollections.observableArrayList(
                 createItem(
@@ -193,7 +203,7 @@ public class GuiTourCommand implements Runnable {
         stage.initOwner(qupath.getStage());
         stage.initModality(Modality.NONE);
         stage.setAlwaysOnTop(true); // It'll also be on top of other applications!
-        stage.setTitle(TourResources.getString("title"));
+        stage.setTitle(resources.getString("title"));
         var scene = new Scene(tour);
         stage.setScene(scene);
         return stage;
@@ -222,7 +232,7 @@ public class GuiTourCommand implements Runnable {
                 .stream()
                 .filter(node -> containsActionProperty(node, actions))
                 .toList();
-        return DefaultTourItem.create(key, items);
+        return MarkdownTourItem.create(resources, key, items);
     }
 
     /**
@@ -239,7 +249,7 @@ public class GuiTourCommand implements Runnable {
                 .filter(tab -> tabName.equals(tab.getText()))
                 .map(Tab::getContent)
                 .toList();
-        return DefaultTourItem.create(key, items);
+        return MarkdownTourItem.create(resources, key, items);
     }
 
     /**
@@ -249,7 +259,7 @@ public class GuiTourCommand implements Runnable {
      * @return
      */
     private static TourItem createItem(String key, Node... nodes) {
-        return DefaultTourItem.create(key, List.of(nodes));
+        return MarkdownTourItem.create(resources, key, List.of(nodes));
     }
 
     /**

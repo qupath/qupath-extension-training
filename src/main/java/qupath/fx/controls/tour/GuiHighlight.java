@@ -1,4 +1,4 @@
-package qupath.ext.training.ui.tour;
+package qupath.fx.controls.tour;
 
 import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
@@ -15,12 +15,16 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import qupath.ext.training.ui.tour.GuiTourCommand;
 import qupath.fx.utils.FXUtils;
 
 import java.util.List;
 
 /**
  * Manage a window that can act as an overlay to highlight GUI elements.
+ * <p>
+ * Currently, this works by creating a transparent stage with a rectangle that can be moved and resized to highlight.
+ * In the future, this implementation might be changed (e.g. to apply CSS to the highlighted nodes directly).
  */
 class GuiHighlight {
 
@@ -160,14 +164,14 @@ class GuiHighlight {
             return;
         }
 
-        var bounds = TourUtils.computeBoundsForAll(nodes);
-
         // Ensure we have a stage with the required owner window,
         // and return if there is no owner to be found
         if (!ensureInitializedForOwner(firstNode)) {
             hide();
             return;
         }
+
+        var bounds = TourUtils.computeScreenBounds(nodes);
 
         double pad = 4;
         // Target x,y for the stage - allow padding + 1 extra pixel for the stage itself
@@ -204,6 +208,7 @@ class GuiHighlight {
                 .findFirst()
                 .orElse(null);
     }
+
 
 
     /**

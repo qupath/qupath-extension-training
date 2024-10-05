@@ -1,4 +1,4 @@
-package qupath.ext.training.ui.tour;
+package qupath.fx.controls.tour;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
@@ -11,6 +11,11 @@ import javafx.stage.Window;
 
 import java.util.List;
 
+/**
+ * The default skin for the {@link GuiTour} control.
+ * <p>
+ * This uses a {@link Pagination} control to display the different items in the tour.
+ */
 public class GuiTourSkin extends SkinBase<GuiTour> {
 
     private Pagination pagination;
