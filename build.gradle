@@ -45,6 +45,9 @@ dependencies {
     // For JavaFX
     shadow libs.qupath.fxtras
 
+    // For Markdown
+    shadow libs.bundles.markdown
+
     // If you aren't using Groovy, this can be removed
     shadow libs.bundles.groovy
 
