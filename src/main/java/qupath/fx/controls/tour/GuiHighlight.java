@@ -17,6 +17,7 @@ import javafx.stage.Window;
 import javafx.util.Duration;
 import qupath.ext.training.ui.tour.GuiTourCommand;
 import qupath.fx.utils.FXUtils;
+import qupath.lib.common.GeneralTools;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ class GuiHighlight {
     private Stage stage;
     private Rectangle rectangle;
     private BooleanProperty animateProperty = new SimpleBooleanProperty(true);
+    private RelativeWindowMover mover;
 
     /**
      * Create a new highlighter.
@@ -68,6 +70,11 @@ class GuiHighlight {
         var stage = new Stage();
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.initOwner(owner);
+        mover = new RelativeWindowMover(stage);
+        // We get relative movement for free on Mac, but not on Windows or Linux
+        if (!GeneralTools.isMac()) {
+            mover.attach(owner);
+        }
 
         var rect = new Rectangle();
         rect.getStyleClass().addAll("tour-highlight-rect");
@@ -113,6 +120,8 @@ class GuiHighlight {
             if (stage.getOwner() != owner) {
                 stage.hide();
                 stage = null;
+                mover.detach();
+                mover = null;
             }
         }
         if (stage == null)
@@ -182,8 +191,7 @@ class GuiHighlight {
             stage.hide();
             rectangle.setWidth(bounds.getWidth() + pad * 2);
             rectangle.setHeight(bounds.getHeight() + pad * 2);
-            stage.setX(targetX);
-            stage.setY(targetY);
+            mover.moveTo(targetX, targetY);
         } else {
             // I wasn't able to get animation working for both stage x,y location and rectangle width,height -
             // there seemed to be a bug whereby the simultaneous changing of the width,height resulted in the
@@ -191,7 +199,7 @@ class GuiHighlight {
             rectangle.setWidth(bounds.getWidth() + 2 * pad);
             rectangle.setHeight(bounds.getHeight() + 2 * pad);
             stage.sizeToScene();
-            var animation = new HighlightTransition(stage, Duration.millis(300), targetX, targetY);
+            var animation = new HighlightTransition(mover, Duration.millis(300), targetX, targetY);
             animation.playFromStart();
         }
         stage.show();
@@ -255,13 +263,13 @@ class GuiHighlight {
      */
     private static class HighlightTransition extends Transition {
 
-        private final Stage stage;
+        private RelativeWindowMover mover;
         private final double startX, startY, targetX, targetY;
 
-        private HighlightTransition(Stage stage, Duration cycleDuration, double targetX, double targetY) {
-            this.stage = stage;
-            this.startX = stage.getX();
-            this.startY = stage.getY();
+        private HighlightTransition(RelativeWindowMover mover, Duration cycleDuration, double targetX, double targetY) {
+            this.mover = mover;
+            this.startX = mover.getWindow().getX();
+            this.startY = mover.getWindow().getY();
             this.targetX = targetX;
             this.targetY = targetY;
             setCycleDuration(cycleDuration);
@@ -269,8 +277,9 @@ class GuiHighlight {
 
         @Override
         protected void interpolate(double frac) {
-            stage.setX(startX + frac * (targetX - startX));
-            stage.setY(startY + frac * (targetY - startY));
+            double newX = startX + frac * (targetX - startX);
+            double newY = startY + frac * (targetY - startY);
+            mover.moveTo(newX, newY);
         }
 
     }
