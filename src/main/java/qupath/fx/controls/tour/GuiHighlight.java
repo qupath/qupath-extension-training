@@ -3,6 +3,8 @@ package qupath.fx.controls.tour;
 import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
@@ -32,10 +34,37 @@ class GuiHighlight {
     private Rectangle rectangle;
     private BooleanProperty animateProperty = new SimpleBooleanProperty(true);
 
+    private ChangeListener<Number> windowMoveListener = this::handleStageMoved;
+    private ChangeListener<Number> windowResizeListener = this::handleStageResized;
+
     /**
      * Create a new highlighter.
      */
     public GuiHighlight() {}
+
+    private void handleStageMoved(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+        if (stage != null && stage.isShowing())
+            hide();
+    }
+
+    private void handleStageResized(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+        if (stage != null && stage.isShowing())
+            hide();
+    }
+
+    private void attachWindowListener(Window stage) {
+        stage.xProperty().addListener(windowMoveListener);
+        stage.yProperty().addListener(windowMoveListener);
+        stage.widthProperty().addListener(windowResizeListener);
+        stage.heightProperty().addListener(windowResizeListener);
+    }
+
+    private void detachWindowListener(Window stage) {
+        stage.xProperty().removeListener(windowMoveListener);
+        stage.yProperty().removeListener(windowMoveListener);
+        stage.widthProperty().removeListener(windowResizeListener);
+        stage.heightProperty().removeListener(windowResizeListener);
+    }
 
     /**
      * Hide the highlight window.
@@ -68,6 +97,7 @@ class GuiHighlight {
         var stage = new Stage();
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.initOwner(owner);
+        attachWindowListener(owner);
 
         var rect = new Rectangle();
         rect.getStyleClass().addAll("tour-highlight-rect");
@@ -112,6 +142,8 @@ class GuiHighlight {
         if (stage != null) {
             if (stage.getOwner() != owner) {
                 stage.hide();
+                if (stage.getOwner() != null)
+                    detachWindowListener(stage.getOwner());
                 stage = null;
             }
         }
@@ -142,6 +174,11 @@ class GuiHighlight {
      * @param nodes
      */
     public void highlightNodes(List<? extends Node> nodes) {
+        highlightNodes(nodes, animateProperty.get());
+    }
+
+
+    private void highlightNodes(List<? extends Node> nodes, boolean doAnimate) {
         var lastFocusedWindow = findFocusedWindow();
 
         nodes = nodes.stream()
@@ -178,10 +215,14 @@ class GuiHighlight {
         // (this seems to give better centering of the highlights, at least on macOS)
         double targetX = bounds.getMinX() - pad - 1;
         double targetY = bounds.getMinY() - pad - 1;
-        if (!animateProperty.get() || !stage.isShowing() || rectangle.getWidth() == 0 || rectangle.getHeight() == 0) {
-            stage.hide();
-            rectangle.setWidth(bounds.getWidth() + pad * 2);
-            rectangle.setHeight(bounds.getHeight() + pad * 2);
+        if (!doAnimate || !stage.isShowing() || rectangle.getWidth() == 0 || rectangle.getHeight() == 0) {
+            double newWidth = bounds.getWidth() + pad * 2;
+            double newHeight = bounds.getHeight() + pad * 2;
+            if (rectangle.getWidth() != newWidth || rectangle.getHeight() != newHeight) {
+                stage.hide();
+                rectangle.setWidth(bounds.getWidth() + pad * 2);
+                rectangle.setHeight(bounds.getHeight() + pad * 2);
+            }
             stage.setX(targetX);
             stage.setY(targetY);
         } else {
@@ -194,11 +235,13 @@ class GuiHighlight {
             var animation = new HighlightTransition(stage, Duration.millis(300), targetX, targetY);
             animation.playFromStart();
         }
-        stage.show();
+        if (!stage.isShowing()) {
+            stage.show();
 
-        // We don't want to steal focus from the user
-        if (lastFocusedWindow != null)
-            lastFocusedWindow.requestFocus();
+            // We don't want to steal focus from the user
+            if (lastFocusedWindow != null)
+                lastFocusedWindow.requestFocus();
+        }
     }
 
     private static Window findFocusedWindow() {
@@ -269,8 +312,10 @@ class GuiHighlight {
 
         @Override
         protected void interpolate(double frac) {
-            stage.setX(startX + frac * (targetX - startX));
-            stage.setY(startY + frac * (targetY - startY));
+            double newX = startX + frac * (targetX - startX);
+            double newY = startY + frac * (targetY - startY);
+            stage.setX(newX);
+            stage.setY(newY);
         }
 
     }
