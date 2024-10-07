@@ -34,8 +34,6 @@ class GuiHighlight {
     private Rectangle rectangle;
     private BooleanProperty animateProperty = new SimpleBooleanProperty(true);
 
-    private HighlightTransition transition;
-
     private ChangeListener<Number> windowMoveListener = this::handleStageMoved;
     private ChangeListener<Number> windowResizeListener = this::handleStageResized;
 
