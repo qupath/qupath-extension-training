@@ -81,14 +81,11 @@ public class GuiTourCommand implements Runnable {
                         qupath.getToolManager().getToolAction(PathTools.MOVE)),
                 createToolbarItem(
                         "toolbar.drawing",
-                        qupath.getToolManager().getToolAction(PathTools.RECTANGLE),
-                        qupath.getToolManager().getToolAction(
-                                qupath.getToolManager().getTools()
-                                        .stream()
-                                        .filter(t -> t.getName().equals("Wand"))
-                                        .findFirst()
-                                        .orElse(PathTools.BRUSH))),
-
+                        qupath.getToolManager().getTools()
+                                .stream()
+                                .filter(t -> t != PathTools.POINTS && t != PathTools.MOVE)
+                                .map(p -> qupath.getToolManager().getToolAction(p))
+                                .toArray(Action[]::new)),
                 createToolbarItem(
                         "toolbar.points",
                         qupath.getToolManager().getToolAction(PathTools.POINTS)

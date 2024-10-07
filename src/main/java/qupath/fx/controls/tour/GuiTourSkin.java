@@ -7,6 +7,8 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.SkinBase;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.stage.Window;
 
 import java.util.List;
@@ -20,18 +22,20 @@ public class GuiTourSkin extends SkinBase<GuiTour> {
 
     private Pagination pagination;
 
-    private GuiHighlight highlight;
+    private TourHighlight highlight;
 
     /**
      * Constructor for all SkinBase instances.
      *
      * @param control The control for which this Skin should attach to.
      */
-    protected GuiTourSkin(GuiTour control) {
+    protected GuiTourSkin(GuiTour control, TourHighlight highlight) {
         super(control);
-        this.highlight = new GuiHighlight();
-        this.highlight.animateProperty().bind(control.animateProperty());
-        this.highlight.animateProperty().bind(control.animateProperty());
+        this.highlight = highlight;
+        if (highlight instanceof OverlayHighlight stageHighlight) {
+            stageHighlight.animateProperty().bind(control.animateProperty());
+            stageHighlight.animateProperty().bind(control.animateProperty());
+        }
         this.pagination = createPagination();
         control.showHighlightProperty().addListener(this::handleShowHighlightChange);
         // Show/hide the highlight when the window is shown/hidden
@@ -69,9 +73,13 @@ public class GuiTourSkin extends SkinBase<GuiTour> {
         // be visible, and dynamic screenshots don't work
         var nodesToHighlight = item.getHighlightNodes();
         if (!nodesToHighlight.isEmpty()) {
-            highlightNodes(nodesToHighlight);
+            tryToEnsureVisible(nodesToHighlight.getFirst());
         }
-        return item.createPage();
+        // Need to create page first, because it could create screenshots
+        // that would be changed by highlighting
+        Node page = item.createPage();
+        highlightNodes(nodesToHighlight);
+        return page;
     }
 
     /**
@@ -83,6 +91,44 @@ public class GuiTourSkin extends SkinBase<GuiTour> {
         highlight.highlightNodes(nodes);
         if (!getSkinnable().showHighlightProperty().get())
             highlight.hide();
+    }
+
+    /**
+     * Try to ensure that a node is visible.
+     * <p>
+     * Currently, this only handles tab panes;
+     * in the future, we might need to worry about windows as well.
+     * @param node
+     */
+    void tryToEnsureVisible(Node node) {
+        var tab = searchForTab(node);
+        if (tab != null) {
+            tab.getTabPane().getSelectionModel().select(tab);
+        }
+    }
+
+
+    /**
+     * Search for a tab that contains a specified node.
+     * <p>
+     * This is useful when we want to highlight anything under a TabPane,
+     * because the containing tab might not be visible.
+     * @param node
+     * @return a tab if found, or null
+     */
+    private static Tab searchForTab(Node node) {
+        if (node == null)
+            return null;
+        var grandparent = node.getParent() == null ? null : node.getParent().getParent();
+        if (grandparent instanceof TabPane tabPane) {
+            // This is very ugly, but finding the tab is awkward
+            // (TabPaneSkin gets in the way)
+            return tabPane.getTabs().stream()
+                    .filter(tab -> tab.getContent() == node)
+                    .findFirst()
+                    .orElse(null);
+        }
+        return searchForTab(node.getParent());
     }
 
 }

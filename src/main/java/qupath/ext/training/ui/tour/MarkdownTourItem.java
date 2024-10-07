@@ -146,10 +146,8 @@ public class MarkdownTourItem implements TourItem {
     @Override
     public Node createPage() {
         var webview = WebViews.create(true);
-        Platform.runLater(() -> {
-            var html = MarkdownUtils.createHtml(getTitle(), getText(), getImage());
-            webview.getEngine().loadContent(html);
-        });
+        var html = MarkdownUtils.createHtml(getTitle(), getText(), getImage());
+        webview.getEngine().loadContent(html);
         return webview;
     }
 

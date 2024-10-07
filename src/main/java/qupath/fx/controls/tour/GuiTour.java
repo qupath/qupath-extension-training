@@ -14,6 +14,16 @@ import javafx.scene.control.Skin;
  */
 public class GuiTour extends Control {
 
+    /**
+     * Style class using CSS to highlight nodes.
+     */
+    public static final String STYLE_HIGHLIGHT_CSS = "HIGHLIGHT_CSS";
+
+    /**
+     * Style class using a transparent window overlay to highlight nodes.
+     */
+    public static final String STYLE_HIGHLIGHT_OVERLAY = "HIGHLIGHT_OVERLAY";
+
     private final ObservableList<TourItem> items;
     private final BooleanProperty animate = new SimpleBooleanProperty(true);
     private final BooleanProperty showHighlight = new SimpleBooleanProperty(true);
@@ -35,6 +45,7 @@ public class GuiTour extends Control {
 
     /**
      * Property to control whether the tour should animate highlights when moving between items.
+     * This only has an effect if using an overlay for highlighting, not CSS.
      * @return
      */
     public BooleanProperty animateProperty() {
@@ -43,6 +54,7 @@ public class GuiTour extends Control {
 
     /**
      * Set whether the tour should animate highlights when moving between items.
+     * This only has an effect if using an overlay for highlighting, not CSS.
      * @param doAnimate
      */
     public void setAnimate(boolean doAnimate) {
@@ -51,6 +63,7 @@ public class GuiTour extends Control {
 
     /**
      * Get whether the tour should animate highlights when moving between items.
+     * This only has an effect if using an overlay for highlighting, not CSS.
      * @return
      */
     public boolean doAnimate() {
@@ -83,7 +96,11 @@ public class GuiTour extends Control {
 
     @Override
     protected Skin<GuiTour> createDefaultSkin() {
-        return new GuiTourSkin(this);
+        if (getStyleClass().contains(STYLE_HIGHLIGHT_OVERLAY)) {
+            return new GuiTourSkin(this, new OverlayHighlight());
+        } else {
+            return new GuiTourSkin(this, new CssHighlight());
+        }
     }
 
 }
