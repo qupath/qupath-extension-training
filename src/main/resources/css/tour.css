@@ -11,3 +11,8 @@
 .tour-highlight-node {
     -fx-effect: innershadow( two-pass-box , orange , 10, 0.5, 0, 0);
 }
+
+/* Required to stop inner shadow of the tab pane being shown around content */
+.tab-pane.tour-highlight-node > .tab-content-area {
+    -fx-background-color: -fx-outer-border, -fx-background;
+}
