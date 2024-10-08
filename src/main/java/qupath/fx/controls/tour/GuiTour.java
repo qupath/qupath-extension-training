@@ -20,6 +20,11 @@ public class GuiTour extends Control {
     public static final String STYLE_HIGHLIGHT_CSS = "HIGHLIGHT_CSS";
 
     /**
+     * Style class that temporary attaches an Effect to nodes to highlight them.
+     */
+    public static final String STYLE_HIGHLIGHT_EFFECT = "HIGHLIGHT_EFFECT";
+
+    /**
      * Style class using a transparent window overlay to highlight nodes.
      */
     public static final String STYLE_HIGHLIGHT_OVERLAY = "HIGHLIGHT_OVERLAY";
@@ -98,6 +103,8 @@ public class GuiTour extends Control {
     protected Skin<GuiTour> createDefaultSkin() {
         if (getStyleClass().contains(STYLE_HIGHLIGHT_OVERLAY)) {
             return new GuiTourSkin(this, new OverlayHighlight());
+        } else if (getStyleClass().contains(STYLE_HIGHLIGHT_EFFECT)) {
+            return new GuiTourSkin(this, new EffectHighlight());
         } else {
             return new GuiTourSkin(this, new CssHighlight());
         }
