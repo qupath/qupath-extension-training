@@ -37,6 +37,7 @@ public class GuiTourCommand implements Runnable {
     private GuiTour tour;
     private Stage stage;
 
+    private String tourStyle = GuiTour.STYLE_HIGHLIGHT_CSS;
 
     public GuiTourCommand(QuPathGUI qupath) {
         this.qupath = qupath;
@@ -44,6 +45,7 @@ public class GuiTourCommand implements Runnable {
 
     private void initialize() {
         this.tour = new GuiTour();
+        this.tour.getStyleClass().add(tourStyle);
         var items = createItems(qupath);
         this.tour.getItems().setAll(items);
         this.stage = createStage();
@@ -81,14 +83,11 @@ public class GuiTourCommand implements Runnable {
                         qupath.getToolManager().getToolAction(PathTools.MOVE)),
                 createToolbarItem(
                         "toolbar.drawing",
-                        qupath.getToolManager().getToolAction(PathTools.RECTANGLE),
-                        qupath.getToolManager().getToolAction(
-                                qupath.getToolManager().getTools()
-                                        .stream()
-                                        .filter(t -> t.getName().equals("Wand"))
-                                        .findFirst()
-                                        .orElse(PathTools.BRUSH))),
-
+                        qupath.getToolManager().getTools()
+                                .stream()
+                                .filter(t -> t != PathTools.POINTS && t != PathTools.MOVE)
+                                .map(p -> qupath.getToolManager().getToolAction(p))
+                                .toArray(Action[]::new)),
                 createToolbarItem(
                         "toolbar.points",
                         qupath.getToolManager().getToolAction(PathTools.POINTS)
@@ -202,7 +201,7 @@ public class GuiTourCommand implements Runnable {
        var stage = new Stage();
         stage.initOwner(qupath.getStage());
         stage.initModality(Modality.NONE);
-        stage.setAlwaysOnTop(true); // It'll also be on top of other applications!
+        stage.setAlwaysOnTop(GuiTour.STYLE_HIGHLIGHT_OVERLAY.equals(tourStyle)); // If true, it'll also be on top of other applications!
         stage.setTitle(resources.getString("title"));
         var scene = new Scene(tour);
         stage.setScene(scene);

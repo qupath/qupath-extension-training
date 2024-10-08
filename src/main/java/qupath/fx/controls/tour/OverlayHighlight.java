@@ -7,8 +7,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
@@ -28,7 +26,7 @@ import java.util.List;
  * Currently, this works by creating a transparent stage with a rectangle that can be moved and resized to highlight.
  * In the future, this implementation might be changed (e.g. to apply CSS to the highlighted nodes directly).
  */
-class GuiHighlight {
+class OverlayHighlight implements TourHighlight {
 
     private Stage stage;
     private Rectangle rectangle;
@@ -40,7 +38,7 @@ class GuiHighlight {
     /**
      * Create a new highlighter.
      */
-    public GuiHighlight() {}
+    public OverlayHighlight() {}
 
     private void handleStageMoved(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
         if (stage != null && stage.isShowing())
@@ -153,14 +151,6 @@ class GuiHighlight {
             return owner != null;
     }
 
-    /**
-     * Highlight a single node.
-     * @param node
-     * @see #highlightNodes(List)
-     */
-    public void highlightNode(Node node) {
-        highlightNodes(List.of(node));
-    }
 
     /**
      * Highlight a collection of nodes.
@@ -173,6 +163,7 @@ class GuiHighlight {
      * to ensure that the parent tab is shown.
      * @param nodes
      */
+    @Override
     public void highlightNodes(List<? extends Node> nodes) {
         highlightNodes(nodes, animateProperty.get());
     }
@@ -193,7 +184,6 @@ class GuiHighlight {
         // Try to ensure any tab is visible
         // (We assume that, if we have multiple nodes, all are in the same tab)
         var firstNode = nodes.getFirst();
-        tryToEnsureVisible(firstNode);
 
         // This can occur whenever we're part of a toolbar overflow
         if (!firstNode.isVisible() || (firstNode.getParent() != null && !firstNode.getParent().isVisible())) {
@@ -250,46 +240,6 @@ class GuiHighlight {
                 .filter(Window::isFocused)
                 .findFirst()
                 .orElse(null);
-    }
-
-
-
-    /**
-     * Try to ensure that a node is visible.
-     * <p>
-     * Currently, this only handles tab panes;
-     * in the future, we might need to worry about windows as well.
-     * @param node
-     */
-    void tryToEnsureVisible(Node node) {
-        var tab = searchForTab(node);
-        if (tab != null) {
-            tab.getTabPane().getSelectionModel().select(tab);
-        }
-    }
-
-
-    /**
-     * Search for a tab that contains a specified node.
-     * <p>
-     * This is useful when we want to highlight anything under a TabPane,
-     * because the containing tab might not be visible.
-     * @param node
-     * @return a tab if found, or null
-     */
-    private static Tab searchForTab(Node node) {
-        if (node == null)
-            return null;
-        var grandparent = node.getParent() == null ? null : node.getParent().getParent();
-        if (grandparent instanceof TabPane tabPane) {
-            // This is very ugly, but finding the tab is awkward
-            // (TabPaneSkin gets in the way)
-            return tabPane.getTabs().stream()
-                    .filter(tab -> tab.getContent() == node)
-                    .findFirst()
-                    .orElse(null);
-        }
-        return searchForTab(node.getParent());
     }
 
     /**
