@@ -37,7 +37,7 @@ public class GuiTourCommand implements Runnable {
     private GuiTour tour;
     private Stage stage;
 
-    private String tourStyle = GuiTour.STYLE_HIGHLIGHT_CSS;
+    private String tourStyle = GuiTour.STYLE_HIGHLIGHT_EFFECT;
 
     public GuiTourCommand(QuPathGUI qupath) {
         this.qupath = qupath;

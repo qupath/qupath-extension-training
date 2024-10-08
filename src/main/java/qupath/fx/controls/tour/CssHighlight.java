@@ -55,17 +55,7 @@ class CssHighlight implements TourHighlight {
         return true;
     }
 
-    /**
-     * Highlight a collection of nodes.
-     * <ul>
-     *     <li>If a single node is provided, then the highlight window is shown around it.</li>
-     *     <li>If multiple nodes are provided, then the highlight is the bounding box of all nodes.</li>
-     *     <li>If no nodes are provided, any existing highlight window is hidden.</li>
-     * </ul>
-     * Note that all non-visible nodes are ignored, but if a node is within a tab pane then this class will attempt
-     * to ensure that the parent tab is shown.
-     * @param nodes
-     */
+    @Override
     public void highlightNodes(List<? extends Node> nodes) {
         if (currentNodes.equals(nodes))
             return;
