@@ -1,6 +1,7 @@
 plugins {
     // Main gradle plugin for building a Java library
     id 'java-library'
+    id 'maven-publish'
     // To create a shadow/fat jar that bundle up all dependencies
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     // Include this plugin to avoid downloading JavaCPP dependencies for all platforms
@@ -13,8 +14,10 @@ ext.moduleName = 'io.github.qupath.extension.training'
 base {
     archivesName = rootProject.name
     version = '0.0.1-SNAPSHOT'
+    group = 'io.github.qupath'
     description = 'A QuPath extension to help learn how to use the software'
 }
+
 
 // The default 'gradle.ext.qupathVersion' reads this from settings.gradle.
 ext.qupathVersion = gradle.ext.qupathVersion
@@ -162,4 +165,36 @@ repositories {
         url "https://maven.scijava.org/content/repositories/snapshots"
     }
 
+}
+
+
+publishing {
+    repositories {
+        maven {
+            name = "SciJava"
+            def releasesRepoUrl = uri("https://maven.scijava.org/content/repositories/releases")
+            def snapshotsRepoUrl = uri("https://maven.scijava.org/content/repositories/snapshots")
+            // Use gradle -Prelease publish
+            url = project.hasProperty('release') ? releasesRepoUrl : snapshotsRepoUrl
+            credentials {
+                username = System.getenv("MAVEN_USER")
+                password = System.getenv("MAVEN_PASS")
+            }
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            pom {
+                licenses {
+                    license {
+                        name = 'Apache License v2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+            }
+        }
+    }
 }
