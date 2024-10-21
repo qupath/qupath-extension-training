@@ -1,14 +1,17 @@
 package qupath.ext.training.ui;
 
-import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
+import org.controlsfx.control.action.Action;
+import org.controlsfx.glyphfont.FontAwesome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import qupath.ext.training.ui.tour.GuiTourCommand;
 import qupath.lib.common.Version;
 import qupath.lib.gui.QuPathGUI;
+import qupath.lib.gui.actions.ActionTools;
 import qupath.lib.gui.extensions.GitHubProject;
 import qupath.lib.gui.extensions.QuPathExtension;
+import qupath.lib.gui.tools.IconFactory;
 
 import java.util.ResourceBundle;
 
@@ -63,9 +66,11 @@ public class TrainingExtension implements QuPathExtension, GitHubProject {
 		isInstalled = true;
 
 		var tour = new GuiTourCommand(qupath);
-		var item = new MenuItem("QuPath User Interface Tour");
-		item.setOnAction(e -> tour.run());
-		qupath.getMenu("Extensions>Training", true).getItems().add(item);
+		var action = new Action("User interface tour", e -> tour.run());
+		action.setGraphic(IconFactory.createNode(FontAwesome.Glyph.MAP_MARKER, 16));
+		var item = ActionTools.createMenuItem(action);
+		qupath.getMenu("Help", true).getItems().addFirst(item);
+		qupath.getToolBar().getItems().add(ActionTools.createButtonWithGraphicOnly(action));
 	}
 
 	@Override
