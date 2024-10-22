@@ -66,11 +66,12 @@ public class TrainingExtension implements QuPathExtension, GitHubProject {
 		isInstalled = true;
 
 		var tour = new GuiTourCommand(qupath);
-		var action = new Action("User interface tour", e -> tour.run());
-		action.setGraphic(IconFactory.createNode(FontAwesome.Glyph.MAP_MARKER, 16));
+		var action = new Action(tour.getTitle(), e -> tour.run());
+		action.setGraphic(IconFactory.createNode(FontAwesome.Glyph.MAP_MARKER));
 		var item = ActionTools.createMenuItem(action);
 		qupath.getMenu("Help", true).getItems().addFirst(item);
-		qupath.getToolBar().getItems().add(ActionTools.createButtonWithGraphicOnly(action));
+		// TODO: Consider if we want the tour as a toolbar button
+//		qupath.getToolBar().getItems().add(ActionTools.createButtonWithGraphicOnly(action));
 	}
 
 	@Override

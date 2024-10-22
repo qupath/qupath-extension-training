@@ -202,10 +202,18 @@ public class GuiTourCommand implements Runnable {
         stage.initOwner(qupath.getStage());
         stage.initModality(Modality.NONE);
         stage.setAlwaysOnTop(GuiTour.STYLE_HIGHLIGHT_OVERLAY.equals(tourStyle)); // If true, it'll also be on top of other applications!
-        stage.setTitle(resources.getString("title"));
+        stage.setTitle(getTitle());
         var scene = new Scene(tour);
         stage.setScene(scene);
         return stage;
+    }
+
+    /**
+     * Get the title to display for the QuPath tour.
+     * @return
+     */
+    public String getTitle() {
+        return resources.getString("title");
     }
 
     @Override
