@@ -24,7 +24,7 @@ class CssHighlight implements TourHighlight {
     public CssHighlight() {}
 
     /**
-     * Hide the highlight window.
+     * Show the highlight window.
      */
     @Override
     public void show() {
