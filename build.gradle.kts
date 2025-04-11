@@ -5,7 +5,7 @@ plugins {
 
 qupathExtension {
 	name = "qupath-extension-training"
-	version = "0.1.0-SNAPSHOT"
+	version = "0.1.0-rc1"
 	group = "io.github.qupath"
 	description = "A QuPath extension to help learn how to use the software"
 	automaticModule = "qupath.extension.training"
