@@ -2,7 +2,6 @@ package qupath.fx.controls.tour;
 
 import javafx.scene.Node;
 import javafx.stage.Window;
-import qupath.ext.training.ui.tour.GuiTourCommand;
 import qupath.fx.utils.FXUtils;
 
 import java.util.ArrayList;
@@ -14,7 +13,7 @@ import java.util.List;
 class CssHighlight implements TourHighlight {
 
     private static final String HIGHLIGHT_CLASS = "tour-highlight-node";
-    private static final String stylesheet = GuiTourCommand.class.getClassLoader().getResource("css/tour.css").toExternalForm();
+    private static final String stylesheet = CssHighlight.class.getClassLoader().getResource("css/tour.css").toExternalForm();
 
     private final List<Node> currentNodes = new ArrayList<>();
 

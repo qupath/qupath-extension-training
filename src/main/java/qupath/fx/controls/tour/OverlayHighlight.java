@@ -15,7 +15,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.util.Duration;
-import qupath.ext.training.ui.tour.GuiTourCommand;
 import qupath.fx.utils.FXUtils;
 
 import java.util.List;
@@ -116,7 +115,7 @@ class OverlayHighlight implements TourHighlight {
         stage.getProperties().put("_INSTRUCTION_HIGHLIGHT", true);
         stage.setScene(scene);
 
-        scene.getStylesheets().add(GuiTourCommand.class.getClassLoader().getResource("css/tour.css").toExternalForm());
+        scene.getStylesheets().add(OverlayHighlight.class.getClassLoader().getResource("css/tour.css").toExternalForm());
 
         this.rectangle = rect;
         this.stage = stage;
