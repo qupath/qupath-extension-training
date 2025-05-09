@@ -14,9 +14,9 @@ import java.util.List;
 class CssHighlight implements TourHighlight {
 
     private static final String HIGHLIGHT_CLASS = "tour-highlight-node";
-    private static String stylesheet = GuiTourCommand.class.getClassLoader().getResource("css/tour.css").toExternalForm();
+    private static final String stylesheet = GuiTourCommand.class.getClassLoader().getResource("css/tour.css").toExternalForm();
 
-    private List<Node> currentNodes = new ArrayList<>();
+    private final List<Node> currentNodes = new ArrayList<>();
 
     /**
      * Create a new highlighter.
