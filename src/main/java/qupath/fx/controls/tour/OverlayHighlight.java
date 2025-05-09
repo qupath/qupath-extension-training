@@ -30,10 +30,10 @@ class OverlayHighlight implements TourHighlight {
 
     private Stage stage;
     private Rectangle rectangle;
-    private BooleanProperty animateProperty = new SimpleBooleanProperty(true);
+    private final BooleanProperty animateProperty = new SimpleBooleanProperty(true);
 
-    private ChangeListener<Number> windowMoveListener = this::handleStageMoved;
-    private ChangeListener<Number> windowResizeListener = this::handleStageResized;
+    private final ChangeListener<Number> windowMoveListener = this::handleStageMoved;
+    private final ChangeListener<Number> windowResizeListener = this::handleStageResized;
 
     /**
      * Create a new highlighter.

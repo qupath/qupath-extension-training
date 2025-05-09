@@ -5,8 +5,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -128,50 +126,33 @@ public class GuiTourCommand implements Runnable {
                         "toolbar.show-classification",
                         qupath.getOverlayActions().SHOW_PIXEL_CLASSIFICATION),
 
-                // TODO: Access opacity slider in a more robust way
                 createItem(
                         "toolbar.opacity-slider",
-                        qupath.getToolBar().getItems().stream()
-                                .filter(n -> n instanceof Slider)
-                                .findFirst()
-                                .orElse(null)),
+                        qupath.getToolBar().lookup("#opacitySlider")),
 
-                // TODO: Access measurement menu in a more robust way
                 createItem(
                         "toolbar.measurement-tables",
-                        qupath.getToolBar().getItems().stream()
-                                .filter(n -> n instanceof MenuButton)
-                                .findFirst()
-                                .orElse(null)),
+                        qupath.getToolBar().lookup("#measurementTablesMenuButton")),
 
                 createToolbarItem(
                         "toolbar.script-editor",
                         qupath.getAutomateActions().SCRIPT_EDITOR),
 
-                createToolbarItem(
-                        "toolbar.show-overview",
-                        qupath.getViewerActions().SHOW_OVERVIEW),
+                createItem(
+                        "toolbar.viewer-menubutton",
+                        qupath.getToolBar().lookup("#viewerMenuButton")),
 
                 createToolbarItem(
-                        "toolbar.show-location",
-                        qupath.getViewerActions().SHOW_LOCATION),
-
-                createToolbarItem(
-                        "toolbar.scalebar",
-                        qupath.getViewerActions().SHOW_SCALEBAR
-                ),
-
-                createToolbarItem(
-                        "toolbar.prefs",
-                        qupath.getCommonActions().PREFERENCES
+                        "toolbar.help",
+                        qupath.getCommonActions().HELP_VIEWER
                 ),
                 createToolbarItem(
                         "toolbar.log",
                         qupath.getCommonActions().SHOW_LOG
                 ),
                 createToolbarItem(
-                        "toolbar.help",
-                        qupath.getCommonActions().HELP_VIEWER
+                        "toolbar.prefs",
+                        qupath.getCommonActions().PREFERENCES
                 ),
                 createTabPaneItem(
                         "tab-pane.project",
