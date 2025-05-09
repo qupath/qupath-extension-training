@@ -20,9 +20,9 @@ import java.util.List;
  */
 public class GuiTourSkin extends SkinBase<GuiTour> {
 
-    private Pagination pagination;
+    private final Pagination pagination;
 
-    private TourHighlight highlight;
+    private final TourHighlight highlight;
 
     /**
      * Constructor for all SkinBase instances.
