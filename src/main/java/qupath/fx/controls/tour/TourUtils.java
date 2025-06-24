@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Utility methods for working with tours.
  *
- * TODO: Since these methods are not tour-specific, it is intended to move them to FXUtils.
+ * TODO: Since these methods are not tour-specific, it is intended to move them to qupath-fxtras.
  */
 public class TourUtils {
 

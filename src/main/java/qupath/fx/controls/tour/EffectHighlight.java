@@ -14,7 +14,7 @@ import java.util.List;
  */
 class EffectHighlight implements TourHighlight {
 
-    private List<Node> currentNodes = new ArrayList<>();
+    private final List<Node> currentNodes = new ArrayList<>();
 
     /**
      * Create a new highlighter.
@@ -34,9 +34,9 @@ class EffectHighlight implements TourHighlight {
     }
 
     private Effect createEffect(Node node) {
-        var innerShaddow = new InnerShadow(10.0, Color.ORANGE);
+        var innerShadow = new InnerShadow(10.0, Color.ORANGE);
         var outerShadow = new DropShadow(10.0, Color.ORANGE);
-        outerShadow.setInput(innerShaddow);
+        outerShadow.setInput(innerShadow);
         return outerShadow;
     }
 

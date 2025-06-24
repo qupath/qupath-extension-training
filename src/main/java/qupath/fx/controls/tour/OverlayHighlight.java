@@ -15,7 +15,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.util.Duration;
-import qupath.ext.training.ui.tour.GuiTourCommand;
 import qupath.fx.utils.FXUtils;
 
 import java.util.List;
@@ -30,10 +29,10 @@ class OverlayHighlight implements TourHighlight {
 
     private Stage stage;
     private Rectangle rectangle;
-    private BooleanProperty animateProperty = new SimpleBooleanProperty(true);
+    private final BooleanProperty animateProperty = new SimpleBooleanProperty(true);
 
-    private ChangeListener<Number> windowMoveListener = this::handleStageMoved;
-    private ChangeListener<Number> windowResizeListener = this::handleStageResized;
+    private final ChangeListener<Number> windowMoveListener = this::handleStageMoved;
+    private final ChangeListener<Number> windowResizeListener = this::handleStageResized;
 
     /**
      * Create a new highlighter.
@@ -116,7 +115,7 @@ class OverlayHighlight implements TourHighlight {
         stage.getProperties().put("_INSTRUCTION_HIGHLIGHT", true);
         stage.setScene(scene);
 
-        scene.getStylesheets().add(GuiTourCommand.class.getClassLoader().getResource("css/tour.css").toExternalForm());
+        scene.getStylesheets().add(OverlayHighlight.class.getClassLoader().getResource("css/tour.css").toExternalForm());
 
         this.rectangle = rect;
         this.stage = stage;
